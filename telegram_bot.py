@@ -19,6 +19,10 @@ import sqlite3
 import threading
 import logging
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
+load_dotenv()
 
 import requests
 import paho.mqtt.client as mqtt
@@ -39,7 +43,11 @@ log = logging.getLogger(__name__)
 # ==============================================================================
 
 TELEGRAM_BOT_TOKEN: str = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-_raw_chat_ids: str = os.environ.get("AUTHORIZED_CHAT_IDS", "")
+_raw_chat_ids: str = (
+    os.environ.get("AUTHORIZED_CHAT_IDS")
+    or os.environ.get("AUTHORIZED_TELEGRAM_IDS")
+    or os.environ.get("TELEGRAM_CHAT_ID", "")
+)
 
 # Lista de IDs autorizados (integers). Si la variable de entorno está vacía se
 # usa una lista vacía y nadie podrá interactuar con el bot.
