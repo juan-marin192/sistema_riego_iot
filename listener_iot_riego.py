@@ -1,28 +1,58 @@
 
+import os
 import sqlite3
 import json
 import requests
 import threading
 import time
+import logging
 from datetime import datetime
+from dotenv import load_dotenv
 import paho.mqtt.client as mqtt
 
+try:
+    from webhook_alerts import webhook_manager, WebhookEvent, init_webhook_tables
+except Exception as _e_wh:
+    webhook_manager = None
+    WebhookEvent = None
+    init_webhook_tables = None
+
+load_dotenv()
+
 # ============================================================================
-# PARÁMETROS DE CONFIGURACIÓN DE PROTOCOLO MQTT, BASE DE DATOS Y NOTIFICACIONES
+# LOGGING MEJORADO
 # ============================================================================
 
-MQTT_BROKER = "broker.emqx.io"
-MQTT_PORT = 1883
-MQTT_TOPIC_DATA = "hogar/planta01/telemetria"
-MQTT_TOPIC_CTRL = "hogar/planta01/control"
+os.makedirs("logs", exist_ok=True)
 
-# Credenciales de autenticación para Telegram
-# Configurar aquí el token nuevo generado mediante BotFather
-TELEGRAM_BOT_TOKEN = "9159520153:AAHv5qeorAPrXTUOO7iJyz9ORVnGxlz3_Ko"
-TELEGRAM_CHAT_ID = "9013582355"
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('logs/backend.log')
+    ]
+)
+logger = logging.getLogger(__name__)
 
-# Base de datos SQLite
-DB_NAME = "riego_iot.db"
+
+# ============================================================================
+# PARÁMETROS DE CONFIGURACIÓN (CARGADOS DESDE VARIABLES DE ENTORNO)
+# ============================================================================
+
+MQTT_BROKER = os.environ.get("MQTT_BROKER", "broker.emqx.io")
+MQTT_PORT = int(os.environ.get("MQTT_PORT", "1883"))
+MQTT_TOPIC_DATA = os.environ.get("MQTT_TOPIC_DATA", "hogar/planta01/telemetria")
+MQTT_TOPIC_CTRL = os.environ.get("MQTT_TOPIC_CTRL", "hogar/planta01/control")
+MQTT_USER = os.environ.get("MQTT_USER", "")
+MQTT_PASS = os.environ.get("MQTT_PASS", "")
+
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+AUTHORIZED_CHAT_IDS_STR = os.environ.get("AUTHORIZED_CHAT_IDS", TELEGRAM_CHAT_ID)
+AUTHORIZED_CHAT_IDS = [cid.strip() for cid in AUTHORIZED_CHAT_IDS_STR.split(",") if cid.strip()]
+
+DB_NAME = os.environ.get("DB_NAME", "riego_iot.db")
 
 
 # ============================================================================
@@ -48,10 +78,36 @@ def init_db():
         )
     ''')
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS operaciones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha_hora TEXT,
+            tipo TEXT,
+            descripcion TEXT,
+            usuario TEXT,
+            resultado TEXT
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS alarmas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha_hora TEXT,
+            tipo_alarma TEXT,
+            valor REAL,
+            umbral REAL,
+            dispositivo TEXT,
+            resuelta INTEGER DEFAULT 0
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
-    print("Base de datos SQLite inicializada correctamente.")
+    if init_webhook_tables:
+        init_webhook_tables(DB_NAME)
+
+    logger.info("Base de datos SQLite inicializada correctamente.")
 
 
 def guardar_telemetria(data):
@@ -82,14 +138,14 @@ def guardar_telemetria(data):
         conn.commit()
         conn.close()
 
-        print(
-            f"[{now_str}] Registro almacenado en BD | "
+        logger.info(
+            f"Registro almacenado en BD | "
             f"Humedad Volumétrica: {data.get('humedad_vwc')}% | "
             f"Actuador: {data.get('bomba_estado')}"
         )
 
     except Exception as e:
-        print(f"Excepción en la persistencia de datos SQLite: {e}")
+        logger.error(f"Excepción en la persistencia de datos SQLite: {e}")
 
 
 def obtener_ultimo_estado_db():
@@ -111,28 +167,136 @@ def obtener_ultimo_estado_db():
         return row
 
     except Exception as e:
-        print(f"Error al consultar último registro: {e}")
+        logger.error(f"Error al consultar último registro: {e}")
         return None
 
 
-def enviar_notificacion(mensaje):
+# ============================================================================
+# REGISTRO DE OPERACIONES
+# ============================================================================
+
+def registrar_operacion(tipo, descripcion, usuario, resultado):
     try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute('''
+            INSERT INTO operaciones (fecha_hora, tipo, descripcion, usuario, resultado)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (now_str, tipo, descripcion, usuario, resultado))
+        conn.commit()
+        conn.close()
+        logger.info(f"[OPERACION] {tipo} | {descripcion} | usuario={usuario} | resultado={resultado}")
+    except Exception as e:
+        logger.error(f"Error al registrar operación: {e}")
+
+
+# ============================================================================
+# VERIFICACIÓN DE ALARMAS
+# ============================================================================
+
+def verificar_alarmas(data):
+    dispositivo = data.get("dispositivo", "ESP32_Planta_Hogar")
+    humedad_vwc = float(data.get("humedad_vwc", 0.0))
+    temperatura = float(data.get("temperatura", 0.0))
+    vpd_kpa = float(data.get("vpd_kpa", 0.0))
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    alarmas_detectadas = []
+
+    if humedad_vwc < 15.0:
+        alarmas_detectadas.append(("HUMEDAD_CRITICA_BAJA", humedad_vwc, 15.0))
+    if humedad_vwc > 85.0:
+        alarmas_detectadas.append(("HUMEDAD_EXCESO", humedad_vwc, 85.0))
+    if temperatura > 38.0:
+        alarmas_detectadas.append(("TEMPERATURA_ALTA", temperatura, 38.0))
+    if vpd_kpa > 2.5:
+        alarmas_detectadas.append(("VPD_CRITICO", vpd_kpa, 2.5))
+
+    if not alarmas_detectadas:
+        return
+
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        for tipo_alarma, valor, umbral in alarmas_detectadas:
+            cursor.execute('''
+                INSERT INTO alarmas (fecha_hora, tipo_alarma, valor, umbral, dispositivo, resuelta)
+                VALUES (?, ?, ?, ?, ?, 0)
+            ''', (now_str, tipo_alarma, valor, umbral, dispositivo))
+            logger.warning(f"[ALARMA] {tipo_alarma} | valor={valor} | umbral={umbral} | dispositivo={dispositivo}")
+
+            msg_alarma = (
+                f"⚠️ *ALARMA: {tipo_alarma}*\n"
+                f"• Valor actual: {valor}\n"
+                f"• Umbral: {umbral}\n"
+                f"• Dispositivo: {dispositivo}\n"
+                f"• Hora: {now_str}"
+            )
+            enviar_notificacion(msg_alarma)
+
+            if webhook_manager and WebhookEvent:
+                webhook_manager.emitir_evento(
+                    evento=WebhookEvent.ALERTA_UMBRAL,
+                    datos={"tipo": tipo_alarma, "valor": valor, "umbral": umbral},
+                    dispositivo=dispositivo
+                )
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.error(f"Error al guardar alarma en BD: {e}")
+
+
+# ============================================================================
+# NOTIFICACIONES TELEGRAM
+# ============================================================================
+
+def enviar_notificacion(mensaje, chat_id=None, reply_markup=None):
+    try:
+        target_chat_id = chat_id if chat_id else TELEGRAM_CHAT_ID
         domain = "api.telegram.org"
         url = f"https://{domain}/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
         payload = {
-            "chat_id": TELEGRAM_CHAT_ID,
+            "chat_id": target_chat_id,
             "text": mensaje,
             "parse_mode": "Markdown"
         }
 
+        if reply_markup:
+            payload["reply_markup"] = json.dumps(reply_markup)
+
         res = requests.post(url, json=payload, timeout=5)
 
         if res.status_code != 200:
-            print(f"Fallo en pasarela HTTP Telegram. Código: {res.status_code}")
+            logger.warning(f"Fallo en pasarela HTTP Telegram. Código: {res.status_code}")
 
     except Exception as e:
-        print(f"Excepción al ejecutar petición HTTP Telegram: {e}")
+        logger.error(f"Excepción al ejecutar petición HTTP Telegram: {e}")
+
+
+def enviar_menu_principal(chat_id):
+    """Envía el menú principal con teclado inline al chat_id especificado."""
+    menu_msg = (
+        "*MENÚ DE COMANDOS TELEMANDO IOT*\n\n"
+        "• `/riego_on` : Activar la bomba manualmente vía MQTT\n"
+        "• `/riego_off` : Desactivar la bomba manualmente vía MQTT\n"
+        "• `/estado` : Consultar última lectura de telemetría\n"
+        "• `/ayuda` : Mostrar menú de comandos"
+    )
+
+    reply_markup = {
+        "inline_keyboard": [
+            [
+                {"text": "📊 Estado", "callback_data": "/estado"},
+                {"text": "💧 Riego ON", "callback_data": "/riego_on"},
+                {"text": "🛑 Riego OFF", "callback_data": "/riego_off"}
+            ]
+        ]
+    }
+
+    enviar_notificacion(menu_msg, chat_id=chat_id, reply_markup=reply_markup)
 
 
 # ============================================================================
@@ -149,11 +313,31 @@ ultima_alerta_timeout = False
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        print(f"Conexión establecida con broker MQTT: {MQTT_BROKER}")
-
+        logger.info(f"Conexión establecida con broker MQTT: {MQTT_BROKER}")
         client.subscribe(MQTT_TOPIC_DATA)
+        logger.info(f"Suscripción activa: {MQTT_TOPIC_DATA}")
+    else:
+        logger.error(f"Error de conexión con broker MQTT. Código: {rc}")
 
-        print(f"Suscripción activa: {MQTT_TOPIC_DATA}")
+
+# ============================================================================
+# CALLBACK DE DESCONEXIÓN MQTT (RECONEXIÓN AUTOMÁTICA)
+# ============================================================================
+
+def on_disconnect(client, userdata, rc):
+    if rc != 0:
+        logger.warning(f"Desconexión inesperada del broker MQTT (rc={rc}). Intentando reconexión...")
+        if webhook_manager and WebhookEvent:
+            webhook_manager.emitir_evento(
+                evento=WebhookEvent.BROKER_ERROR,
+                datos={"codigo_rc": rc, "error": f"Desconexión inesperada rc={rc}"},
+                dispositivo="Backend_Listener"
+            )
+        time.sleep(5)
+        try:
+            client.reconnect()
+        except Exception as e:
+            logger.error(f"Error en reconexión: {e}")
 
 
 # ============================================================================
@@ -183,6 +367,18 @@ def on_message(client, userdata, msg):
             )
 
             enviar_notificacion(msg_notif)
+            registrar_operacion(
+                "BOMBA_ON_AUTO",
+                f"Inicio automático de riego. VWC={vwc}%",
+                "ESP32",
+                "OK"
+            )
+            if webhook_manager and WebhookEvent:
+                webhook_manager.emitir_evento(
+                    evento=WebhookEvent.ACTUADOR_CAMBIO,
+                    datos={"bomba_estado": "ON", "motivo": "inicio_automatico", "humedad_vwc": vwc},
+                    dispositivo=data.get("dispositivo", "ESP32_Planta_Hogar")
+                )
 
         # Notificación de finalización normal del riego
         elif (
@@ -198,6 +394,18 @@ def on_message(client, userdata, msg):
             )
 
             enviar_notificacion(msg_notif)
+            registrar_operacion(
+                "BOMBA_OFF_AUTO",
+                f"Finalización automática de riego. VWC={vwc}%",
+                "ESP32",
+                "OK"
+            )
+            if webhook_manager and WebhookEvent:
+                webhook_manager.emitir_evento(
+                    evento=WebhookEvent.ACTUADOR_CAMBIO,
+                    datos={"bomba_estado": "OFF", "motivo": "finalizacion_normal", "humedad_vwc": vwc},
+                    dispositivo=data.get("dispositivo", "ESP32_Planta_Hogar")
+                )
 
         # Notificación de timeout
         if timeout_actual and not ultima_alerta_timeout:
@@ -210,22 +418,38 @@ def on_message(client, userdata, msg):
             )
 
             enviar_notificacion(msg_notif)
+            registrar_operacion(
+                "TIMEOUT_BOMBA",
+                "Actuador desactivado por timeout de seguridad",
+                "ESP32",
+                "ALERTA"
+            )
+            if webhook_manager and WebhookEvent:
+                webhook_manager.emitir_evento(
+                    evento=WebhookEvent.TIMEOUT_SEGURIDAD,
+                    datos={"mensaje": "Timeout de 10 segundos alcanzado", "bomba_estado": "OFF"},
+                    dispositivo=data.get("dispositivo", "ESP32_Planta_Hogar")
+                )
+
+        # Verificar alarmas de umbrales
+        verificar_alarmas(data)
 
         # Actualización de estados globales
         ultimo_estado_bomba = bomba_actual
         ultima_alerta_timeout = timeout_actual
 
     except Exception as e:
-        print(f"Excepción en procesamiento de telemetría JSON: {e}")
+        logger.error(f"Excepción en procesamiento de telemetría JSON: {e}")
 
 
 # ============================================================================
 # ESCUCHA Y PROCESAMIENTO DE COMANDOS TELEGRAM
 # ============================================================================
 
-def procesar_comando_telegram(comando, mqtt_client):
+def procesar_comando_telegram(comando, mqtt_client, sender_chat_id=None):
 
     comando_clean = comando.strip().lower()
+    chat_id_destino = sender_chat_id if sender_chat_id else TELEGRAM_CHAT_ID
 
     # ------------------------------------------------------------------------
     # ACTIVACIÓN MANUAL DEL SISTEMA DE RIEGO
@@ -233,7 +457,7 @@ def procesar_comando_telegram(comando, mqtt_client):
 
     if comando_clean == "/riego_on":
 
-        print("Comando manual recibido desde Telegram: /riego_on")
+        logger.info("Comando manual recibido desde Telegram: /riego_on")
 
         mqtt_client.publish(MQTT_TOPIC_CTRL, "ON")
 
@@ -241,7 +465,15 @@ def procesar_comando_telegram(comando, mqtt_client):
             "*SOLICITUD DE ACTIVACIÓN DEL SISTEMA DE RIEGO*\n"
             "Se ha transmitido la instrucción de encendido "
             "del actuador mediante el protocolo MQTT.\n"
-            "Pendiente de confirmación del microcontrolador ESP32."
+            "Pendiente de confirmación del microcontrolador ESP32.",
+            chat_id=chat_id_destino
+        )
+
+        registrar_operacion(
+            "RIEGO_ON_MANUAL",
+            "Activación manual de bomba vía Telegram",
+            chat_id_destino,
+            "ENVIADO_MQTT"
         )
 
     # ------------------------------------------------------------------------
@@ -250,7 +482,7 @@ def procesar_comando_telegram(comando, mqtt_client):
 
     elif comando_clean == "/riego_off":
 
-        print("Comando manual recibido desde Telegram: /riego_off")
+        logger.info("Comando manual recibido desde Telegram: /riego_off")
 
         mqtt_client.publish(MQTT_TOPIC_CTRL, "OFF")
 
@@ -258,7 +490,15 @@ def procesar_comando_telegram(comando, mqtt_client):
             "*SOLICITUD DE DESACTIVACIÓN DEL SISTEMA DE RIEGO*\n"
             "Se ha transmitido la instrucción de apagado "
             "del actuador mediante el protocolo MQTT.\n"
-            "Pendiente de confirmación del microcontrolador ESP32."
+            "Pendiente de confirmación del microcontrolador ESP32.",
+            chat_id=chat_id_destino
+        )
+
+        registrar_operacion(
+            "RIEGO_OFF_MANUAL",
+            "Desactivación manual de bomba vía Telegram",
+            chat_id_destino,
+            "ENVIADO_MQTT"
         )
 
     # ------------------------------------------------------------------------
@@ -288,23 +528,15 @@ def procesar_comando_telegram(comando, mqtt_client):
         else:
             estado_msg = "No hay registros disponibles en la base de datos."
 
-        enviar_notificacion(estado_msg)
+        enviar_notificacion(estado_msg, chat_id=chat_id_destino)
 
     # ------------------------------------------------------------------------
-    # MENÚ DE AYUDA
+    # MENÚ DE AYUDA CON TECLADO INLINE
     # ------------------------------------------------------------------------
 
     elif comando_clean in ["/start", "/ayuda", "/help"]:
 
-        menu_msg = (
-            "*MENÚ DE COMANDOS TELEMANDO IOT*\n\n"
-            "• `/riego_on` : Activar la bomba manualmente vía MQTT\n"
-            "• `/riego_off` : Desactivar la bomba manualmente vía MQTT\n"
-            "• `/estado` : Consultar última lectura de telemetría\n"
-            "• `/ayuda` : Mostrar menú de comandos"
-        )
-
-        enviar_notificacion(menu_msg)
+        enviar_menu_principal(chat_id_destino)
 
 
 # ============================================================================
@@ -344,20 +576,32 @@ def hilo_polling_telegram(mqtt_client):
                     message = update.get("message", {})
                     text = message.get("text", "")
 
+                    # Soporte para callback_query (botones inline)
+                    if not message and "callback_query" in update:
+                        callback = update["callback_query"]
+                        text = callback.get("data", "")
+                        message = callback.get("message", {})
+
                     sender_chat_id = str(
                         message.get("chat", {}).get("id", "")
                     )
 
-                    if sender_chat_id == TELEGRAM_CHAT_ID:
+                    if sender_chat_id in AUTHORIZED_CHAT_IDS:
 
                         procesar_comando_telegram(
                             text,
-                            mqtt_client
+                            mqtt_client,
+                            sender_chat_id=sender_chat_id
                         )
+
+                    else:
+                        # Log de acceso no autorizado
+                        if sender_chat_id:
+                            logger.warning(f"[SEGURIDAD] Acceso rechazado para chat_id: {sender_chat_id}")
 
         except Exception as e:
 
-            print(f"Error en polling de Telegram: {e}")
+            logger.error(f"Error en polling de Telegram: {e}")
             time.sleep(2)
 
 
@@ -369,14 +613,17 @@ if __name__ == "__main__":
 
     init_db()
 
-    client = mqtt.Client(
-        client_id="VSCode_Backend_Listener"
-    )
+    client_id = f"Backend_Listener_{int(time.time())}"
+    client = mqtt.Client(client_id=client_id)
 
     client.on_connect = on_connect
     client.on_message = on_message
+    client.on_disconnect = on_disconnect
 
-    print("Iniciando conexión con el broker MQTT...")
+    if MQTT_USER and MQTT_PASS:
+        client.username_pw_set(MQTT_USER, MQTT_PASS)
+
+    logger.info("Iniciando conexión con el broker MQTT...")
 
     client.connect(
         MQTT_BROKER,
@@ -392,9 +639,9 @@ if __name__ == "__main__":
 
     t_telegram.start()
 
-    print("Hilo secundario de telemando Telegram iniciado.")
+    logger.info("Hilo secundario de telemando Telegram iniciado.")
 
-    print(
+    logger.info(
         "Backend en escucha activa de telemetría "
         "e instrucciones IoT. (Ctrl + C para finalizar)"
     )

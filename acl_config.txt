@@ -1,0 +1,99 @@
+# =============================================================================
+# acl_config.txt - Lista de Control de Acceso (ACL) para Mosquitto Broker
+# Sistema IoT de Riego Automático
+# =============================================================================
+#
+# INSTRUCCIONES DE CONFIGURACIÓN:
+#   1. Referencia este archivo en mosquitto.conf:
+#        acl_file /ruta/al/acl_config.txt
+#   2. Habilita autenticación por contraseña:
+#        password_file /ruta/al/passwd
+#        allow_anonymous false
+#   3. Recarga Mosquitto después de cambios:
+#        mosquitto_ctl reload   (o reinicia el servicio)
+#
+# FORMATO DE REGLAS:
+#   user <nombre_de_usuario>
+#   topic read   <topico>   # solo lectura (subscribe)
+#   topic write  <topico>   # solo escritura (publish)
+#   topic readwrite <topico># lectura y escritura
+#
+# Los tópicos pueden usar comodines MQTT:
+#   +  → un nivel (ej: hogar/+/telemetria)
+#   #  → múltiples niveles (ej: hogar/#)
+#
+# MODELO DE ACCESO MÍNIMO PRIVILEGIO:
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# USUARIO: esp32_device
+# Rol: Microcontrolador ESP32 del sistema de riego
+# Permisos:
+#   - PUBLICAR telemetría del sensor
+#   - SUSCRIBIRSE al tópico de control para recibir comandos
+# -----------------------------------------------------------------------------
+
+user esp32_device
+topic write  hogar/planta01/telemetria
+topic read   hogar/planta01/control
+
+
+# -----------------------------------------------------------------------------
+# USUARIO: backend_listener
+# Rol: Backend Python que escucha telemetría y procesa comandos Telegram
+# Permisos:
+#   - SUSCRIBIRSE a telemetría (lectura de datos del sensor)
+#   - PUBLICAR en control (envío de comandos al ESP32)
+#   - PUBLICAR en alertas (notificaciones internas del sistema)
+#   - SUSCRIBIRSE a status (monitoreo del sistema)
+# -----------------------------------------------------------------------------
+
+user backend_listener
+topic read   hogar/planta01/telemetria
+topic write  hogar/planta01/control
+topic write  hogar/planta01/alertas
+topic read   hogar/planta01/status
+
+
+# -----------------------------------------------------------------------------
+# USUARIO: telegram_bot
+# Rol: Gateway del bot de Telegram
+# NOTA: En la arquitectura actual el bot de Telegram está integrado en el
+#       backend_listener. Si se separa en un microservicio independiente,
+#       usar estas restricciones:
+#
+# Permisos:
+#   - PUBLICAR en control (vía backend — no directamente al ESP32)
+#   - SUSCRIBIRSE a alertas (para retransmitir notificaciones al usuario)
+# NO puede: leer telemetría directamente, publicar en telemetría
+# -----------------------------------------------------------------------------
+
+user telegram_bot
+topic write  hogar/planta01/control
+topic read   hogar/planta01/alertas
+
+
+# -----------------------------------------------------------------------------
+# USUARIO: monitor_dashboard
+# Rol: Panel de visualización / dashboard (futuro)
+# Permisos: Solo lectura de todos los tópicos del sistema
+# -----------------------------------------------------------------------------
+
+user monitor_dashboard
+topic read   hogar/planta01/telemetria
+topic read   hogar/planta01/control
+topic read   hogar/planta01/status
+topic read   hogar/planta01/alertas
+
+
+# -----------------------------------------------------------------------------
+# REGLA DE DENEGACIÓN POR DEFECTO
+# (Mosquitto deniega todo lo no explícitamente permitido cuando
+#  allow_anonymous false está configurado en mosquitto.conf)
+# -----------------------------------------------------------------------------
+
+# Para usuarios no autenticados: sin acceso a ningún tópico
+# Esta línea es informativa; Mosquitto la aplica implícitamente.
+# user anonymous
+# (ningún permiso asignado → acceso total denegado)
