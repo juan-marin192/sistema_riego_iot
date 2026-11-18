@@ -51,6 +51,8 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 AUTHORIZED_CHAT_IDS_STR = os.environ.get("AUTHORIZED_CHAT_IDS", TELEGRAM_CHAT_ID)
 AUTHORIZED_CHAT_IDS = [cid.strip() for cid in AUTHORIZED_CHAT_IDS_STR.split(",") if cid.strip()]
+# Bandera para evitar conflicto HTTP 409 cuando se ejecuta telegram_bot.py en paralelo
+ENABLE_TELEGRAM_POLLING = os.environ.get("ENABLE_TELEGRAM_POLLING", "false").lower() in ("true", "1", "yes")
 
 DB_NAME = os.environ.get("DB_NAME", "riego_iot.db")
 
@@ -599,6 +601,13 @@ def hilo_polling_telegram(mqtt_client):
                         if sender_chat_id:
                             logger.warning(f"[SEGURIDAD] Acceso rechazado para chat_id: {sender_chat_id}")
 
+            elif res.status_code == 409:
+                logger.warning(
+                    "[TELEGRAM] Conflicto HTTP 409 detectado: Otra instancia del bot (p. ej. telegram_bot.py) "
+                    "está consultando getUpdates. Se desactiva la concurrencia en este hilo."
+                )
+                time.sleep(10)
+
         except Exception as e:
 
             logger.error(f"Error en polling de Telegram: {e}")
@@ -631,15 +640,20 @@ if __name__ == "__main__":
         60
     )
 
-    t_telegram = threading.Thread(
-        target=hilo_polling_telegram,
-        args=(client,),
-        daemon=True
-    )
-
-    t_telegram.start()
-
-    logger.info("Hilo secundario de telemando Telegram iniciado.")
+    if ENABLE_TELEGRAM_POLLING:
+        t_telegram = threading.Thread(
+            target=hilo_polling_telegram,
+            args=(client,),
+            daemon=True
+        )
+        t_telegram.start()
+        logger.info("Hilo secundario de telemando Telegram iniciado.")
+    else:
+        logger.info(
+            "Polling interactivo de Telegram desactivado en el listener. "
+            "(Gestionado de forma dedicada por telegram_bot.py para evitar conflicto HTTP 409). "
+            "Las notificaciones y alertas automáticas continúan activas."
+        )
 
     logger.info(
         "Backend en escucha activa de telemetría "

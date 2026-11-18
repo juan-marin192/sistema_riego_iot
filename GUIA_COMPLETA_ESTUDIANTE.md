@@ -953,6 +953,13 @@ To https://github.com/juan-marin192/sistema_riego_iot.git
 pip install python-dotenv
 ```
 
+### Error: "HTTP 409 Conflict: terminated by other getUpdates request"
+- Este error ocurre cuando dos scripts intentan escuchar comandos de Telegram simultáneamente con el mismo token.
+- La solución es la arquitectura modular:
+  - `listener_iot_riego.py` procesa la telemetría MQTT y envía notificaciones automáticas (con `ENABLE_TELEGRAM_POLLING=false`).
+  - `telegram_bot.py` es el único encargado del polling de comandos interactivos (`/start`, `/riego_on`, botones).
+- Si ejecutas ambos scripts al mismo tiempo, asegúrate de tener `ENABLE_TELEGRAM_POLLING=false` en tu archivo `.env`.
+
 ### Error: "Connection refused" al conectar MQTT
 - Verifica tu conexión a internet
 - El broker `broker.emqx.io` es público y gratuito, pero requiere internet

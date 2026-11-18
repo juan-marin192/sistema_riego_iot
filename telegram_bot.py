@@ -746,6 +746,12 @@ def hilo_polling_telegram() -> None:
                         _process_update(update)
                     except Exception as exc:
                         log.error(f"[POLLING] Error procesando update {update_id}: {exc}")
+            elif res.status_code == 409:
+                log.warning(
+                    "[POLLING] HTTP 409 Conflict: Otra instancia del bot está haciendo getUpdates. "
+                    "Asegúrate de no tener dos instancias activas. Reintentando en 5 segundos..."
+                )
+                time.sleep(5)
             else:
                 log.warning(f"[POLLING] HTTP {res.status_code}: {res.text[:200]}")
                 time.sleep(2)
