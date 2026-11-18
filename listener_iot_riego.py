@@ -271,6 +271,11 @@ def enviar_notificacion(mensaje, chat_id=None, reply_markup=None):
 
         res = requests.post(url, json=payload, timeout=5)
 
+        if res.status_code == 400 and "can't parse entities" in res.text:
+            logger.warning("Error de entidades Markdown en Telegram. Reintentando sin parse_mode como fallback...")
+            payload.pop("parse_mode", None)
+            res = requests.post(url, json=payload, timeout=5)
+
         if res.status_code != 200:
             logger.warning(f"Fallo en pasarela HTTP Telegram. Código: {res.status_code}")
 

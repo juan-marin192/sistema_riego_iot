@@ -265,7 +265,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>🌱 Sistema IoT de Riego</title>
+<title>Sistema IoT de Riego</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <style>
@@ -343,7 +343,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
 <header>
   <span style="font-size:2rem">🌱</span>
-  <h1>Sistema IoT de Riego — Dashboard de Control</h1>
+  <h1>SISTEMA IOT DE RIEGO — DASHBOARD DE CONTROL</h1>
   <span class="badge" id="badge-conn">⚡ Conectando…</span>
 </header>
 

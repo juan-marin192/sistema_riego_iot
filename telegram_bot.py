@@ -310,7 +310,7 @@ _TG_BASE = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
 
 def send_message(chat_id: int, text: str) -> dict | None:
-    """Envía mensaje de texto simple (Markdown)."""
+    """Envía mensaje de texto simple (Markdown) con fallback automático ante error 400."""
     try:
         url = f"{_TG_BASE}/sendMessage"
         payload = {
@@ -319,8 +319,25 @@ def send_message(chat_id: int, text: str) -> dict | None:
             "parse_mode": "Markdown",
         }
         res = requests.post(url, json=payload, timeout=10)
-        if res.status_code != 200:
-            log.warning(f"[TG] sendMessage HTTP {res.status_code}: {res.text[:200]}")
+        if res.status_code == 200:
+            return res.json()
+
+        # Fallback si falla el parseo de Markdown (código 400: can't parse entities)
+        if res.status_code == 400 and "can't parse entities" in res.text:
+            log.warning(f"[TG] Error de entidades Markdown en chat {chat_id}. Reintentando sin parse_mode como fallback.")
+            payload_plain = {
+                "chat_id": chat_id,
+                "text": text,
+            }
+            res_plain = requests.post(url, json=payload_plain, timeout=10)
+            if res_plain.status_code == 200:
+                log.info(f"[TG] Mensaje entregado con éxito usando fallback sin formato.")
+                return res_plain.json()
+            else:
+                log.warning(f"[TG] Fallback sendMessage HTTP {res_plain.status_code}: {res_plain.text[:200]}")
+                return res_plain.json()
+
+        log.warning(f"[TG] sendMessage HTTP {res.status_code}: {res.text[:200]}")
         return res.json()
     except Exception as exc:
         log.error(f"[TG] Error en send_message: {exc}")
@@ -328,7 +345,7 @@ def send_message(chat_id: int, text: str) -> dict | None:
 
 
 def send_message_with_menu(chat_id: int, text: str, keyboard: dict) -> dict | None:
-    """Envía mensaje con InlineKeyboardMarkup."""
+    """Envía mensaje con InlineKeyboardMarkup y fallback automático ante error 400."""
     try:
         url = f"{_TG_BASE}/sendMessage"
         payload = {
@@ -338,8 +355,26 @@ def send_message_with_menu(chat_id: int, text: str, keyboard: dict) -> dict | No
             "reply_markup": json.dumps(keyboard),
         }
         res = requests.post(url, json=payload, timeout=10)
-        if res.status_code != 200:
-            log.warning(f"[TG] sendMessage+menu HTTP {res.status_code}: {res.text[:200]}")
+        if res.status_code == 200:
+            return res.json()
+
+        # Fallback si falla el parseo de Markdown (código 400: can't parse entities)
+        if res.status_code == 400 and "can't parse entities" in res.text:
+            log.warning(f"[TG] Error de entidades Markdown en chat {chat_id}. Reintentando sin parse_mode como fallback.")
+            payload_plain = {
+                "chat_id": chat_id,
+                "text": text,
+                "reply_markup": json.dumps(keyboard),
+            }
+            res_plain = requests.post(url, json=payload_plain, timeout=10)
+            if res_plain.status_code == 200:
+                log.info(f"[TG] Mensaje con menú entregado con éxito usando fallback sin formato.")
+                return res_plain.json()
+            else:
+                log.warning(f"[TG] Fallback sendMessage+menu HTTP {res_plain.status_code}: {res_plain.text[:200]}")
+                return res_plain.json()
+
+        log.warning(f"[TG] sendMessage+menu HTTP {res.status_code}: {res.text[:200]}")
         return res.json()
     except Exception as exc:
         log.error(f"[TG] Error en send_message_with_menu: {exc}")
@@ -572,7 +607,7 @@ def handle_confirm_on(chat_id: int) -> None:
         log_operation(chat_id, "confirm_on", "ON publicado OK")
         notify_all_authorized(
             f"💧 *RIEGO ACTIVADO MANUALMENTE*\n"
-            f"Operador chat_id: `{chat_id}`\n"
+            f"Operador (Chat ID): `{chat_id}`\n"
             f"Hora: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`"
         )
     else:
@@ -595,7 +630,7 @@ def handle_confirm_off(chat_id: int) -> None:
         log_operation(chat_id, "confirm_off", "OFF publicado OK")
         notify_all_authorized(
             f"🛑 *RIEGO DESACTIVADO MANUALMENTE*\n"
-            f"Operador chat_id: `{chat_id}`\n"
+            f"Operador (Chat ID): `{chat_id}`\n"
             f"Hora: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`"
         )
     else:
