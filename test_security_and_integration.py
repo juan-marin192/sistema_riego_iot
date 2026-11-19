@@ -39,7 +39,7 @@ def registrar_resultado(nombre_prueba: str, exito: bool, detalles: str, duracion
         "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
     TEST_RESULTS.append(resultado)
-    icono = "✅" if exito else "❌"
+    icono = "[OK]" if exito else "[FAIL]"
     print(f"{icono} [{resultado['estado']}] {nombre_prueba} ({duracion_ms:.1f}ms): {detalles}")
 
 

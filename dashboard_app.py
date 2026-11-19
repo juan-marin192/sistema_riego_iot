@@ -337,41 +337,82 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     header h1{font-size:1.1rem}
     .card-value{font-size:1.9rem}
   }
+  /* Iconos vectoriales SVG */
+  .svg-icon{display:inline-block;vertical-align:middle;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .sec-icon{width:16px;height:16px;margin-right:8px;vertical-align:-2px;color:#00b4d8}
+  .card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .card-icon-wrap{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(0,180,216,0.12)}
+  .card-icon-wrap.temp{background:rgba(255,140,0,0.12)}
+  .card-icon-wrap.hum{background:rgba(38,198,218,0.12)}
+  .card-icon-wrap.vpd{background:rgba(179,136,255,0.12)}
+  .btn-icon{width:16px;height:16px;margin-right:8px;vertical-align:-2px}
 </style>
 </head>
 <body>
 
 <header>
-  <span style="font-size:2rem">🌱</span>
-  <h1>SISTEMA IOT DE RIEGO — DASHBOARD DE CONTROL</h1>
-  <span class="badge" id="badge-conn">⚡ Conectando…</span>
+  <div style="display:flex;align-items:center;gap:12px">
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#00b4d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 20A7 7 0 0 1 4 13C4 8.5 8 3 19 3c0 11-5.5 15-8 17Z"/>
+      <path d="M12 12c2.5 0 5-1 7-3"/>
+      <path d="M11 20v2"/>
+    </svg>
+    <h1>SISTEMA IOT DE RIEGO — DASHBOARD DE CONTROL</h1>
+  </div>
+  <span class="badge" id="badge-conn">
+    <svg class="svg-icon" style="width:13px;height:13px;margin-right:5px;vertical-align:-2px;" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+    Conectando…
+  </span>
 </header>
 
 <main>
 
   <!-- TELEMETRÍA EN TIEMPO REAL -->
   <section>
-    <div class="section-title">📡 Telemetría en Tiempo Real</div>
+    <div class="section-title">
+      <svg class="svg-icon sec-icon" viewBox="0 0 24 24"><path d="M2 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H2v-10Z"/><path d="M6 8h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6V8Z"/><path d="M10 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2V4Z"/><path d="M14 10h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2v-12Z"/><path d="M18 14h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2v-8Z"/></svg>
+      Telemetría en Tiempo Real
+    </div>
     <div class="cards-row">
       <div class="card" id="card-vwc">
-        <div class="card-label">Humedad VWC</div>
+        <div class="card-top">
+          <div class="card-label">Humedad VWC</div>
+          <div class="card-icon-wrap">
+            <svg class="svg-icon" style="color:#00b4d8" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </div>
+        </div>
         <div class="card-value" id="val-vwc">—</div>
-        <div class="card-unit">%</div>
+        <div class="card-unit">% de volumen de agua en sustrato</div>
       </div>
       <div class="card" id="card-temp">
-        <div class="card-label">Temperatura</div>
+        <div class="card-top">
+          <div class="card-label">Temperatura</div>
+          <div class="card-icon-wrap temp">
+            <svg class="svg-icon" style="color:#ff8c00" viewBox="0 0 24 24"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+          </div>
+        </div>
         <div class="card-value" id="val-temp">—</div>
-        <div class="card-unit">°C</div>
+        <div class="card-unit">°C ambiente</div>
       </div>
       <div class="card" id="card-hum">
-        <div class="card-label">Humedad Aire</div>
+        <div class="card-top">
+          <div class="card-label">Humedad Relativa</div>
+          <div class="card-icon-wrap hum">
+            <svg class="svg-icon" style="color:#26c6da" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+          </div>
+        </div>
         <div class="card-value" id="val-hum">—</div>
-        <div class="card-unit">%</div>
+        <div class="card-unit">% humedad del aire</div>
       </div>
       <div class="card" id="card-vpd">
-        <div class="card-label">VPD</div>
+        <div class="card-top">
+          <div class="card-label">Déficit Presión Vapor</div>
+          <div class="card-icon-wrap vpd">
+            <svg class="svg-icon" style="color:#b388ff" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m14 14-4-4"/><path d="M12 6v2"/><path d="M6 12h2"/><path d="M16 12h2"/></svg>
+          </div>
+        </div>
         <div class="card-value" id="val-vpd">—</div>
-        <div class="card-unit">kPa</div>
+        <div class="card-unit">kPa (demanda transpiratoria)</div>
       </div>
     </div>
   </section>
@@ -380,18 +421,27 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     <!-- CONTROL DE ACTUADOR -->
     <section>
-      <div class="section-title">🔧 Control de Actuador</div>
+      <div class="section-title">
+        <svg class="svg-icon sec-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Control de Actuador
+      </div>
       <div class="panel">
         <div class="pump-indicator">
           <div class="pump-dot off" id="pump-dot"></div>
           <div>
-            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:#8899bb">Estado Bomba</div>
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:#8899bb">Estado de la Bomba</div>
             <div class="pump-status" id="pump-status">DESCONOCIDO</div>
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-on"  onclick="enviarComando('ON')">💧 ENCENDER</button>
-          <button class="btn btn-off" onclick="enviarComando('OFF')">⛔ APAGAR</button>
+          <button class="btn btn-on"  onclick="enviarComando('ON')">
+            <svg class="btn-icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            ENCENDER
+          </button>
+          <button class="btn btn-off" onclick="enviarComando('OFF')">
+            <svg class="btn-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+            APAGAR
+          </button>
         </div>
         <div style="margin-top:14px;font-size:.78rem;color:#8899bb" id="ctrl-feedback"></div>
       </div>
@@ -399,7 +449,10 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     <!-- LATENCIA Y CONECTIVIDAD -->
     <section>
-      <div class="section-title">📶 Latencia y Conectividad</div>
+      <div class="section-title">
+        <svg class="svg-icon sec-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Latencia y Conectividad
+      </div>
       <div class="panel">
         <div class="conn-row">
           <div class="conn-item">
@@ -420,11 +473,20 @@ DASHBOARD_HTML = """<!DOCTYPE html>
           </div>
         </div>
         <div style="margin-top:14px">
-          <div class="section-title" style="margin-bottom:8px">Umbrales de Alarma</div>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;color:#8899bb">
-            <span>🌊 VWC mín: <b style="color:#00b4d8">20%</b></span>
-            <span>🌊 VWC máx: <b style="color:#00b4d8">80%</b></span>
-            <span>🌡️ Temp máx: <b style="color:#ff8c00">35°C</b></span>
+          <div class="section-title" style="margin-bottom:8px">Umbrales Paramétricos de Alarma</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:.82rem;color:#8899bb;align-items:center">
+            <span style="display:inline-flex;align-items:center;gap:6px">
+              <svg class="svg-icon" style="width:14px;height:14px;color:#00b4d8" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              VWC mín: <b style="color:#00b4d8">20%</b>
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:6px">
+              <svg class="svg-icon" style="width:14px;height:14px;color:#00b4d8" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              VWC máx: <b style="color:#00b4d8">80%</b>
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:6px">
+              <svg class="svg-icon" style="width:14px;height:14px;color:#ff8c00" viewBox="0 0 24 24"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+              Temp máx: <b style="color:#ff8c00">35°C</b>
+            </span>
           </div>
         </div>
       </div>
@@ -434,7 +496,10 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
   <!-- GRÁFICA VWC -->
   <section>
-    <div class="section-title">📈 Evolución Humedad VWC (últimas 20 lecturas)</div>
+    <div class="section-title">
+      <svg class="svg-icon sec-icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Evolución Humedad VWC (últimas 20 lecturas)
+    </div>
     <div class="panel">
       <div class="chart-container">
         <canvas id="chartVWC"></canvas>
@@ -446,7 +511,10 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     <!-- HISTORIAL -->
     <section>
-      <div class="section-title">📋 Historial (últimas 10 lecturas)</div>
+      <div class="section-title">
+        <svg class="svg-icon sec-icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>
+        Historial (últimas 10 lecturas)
+      </div>
       <div class="panel">
         <div class="table-wrap">
           <table>
@@ -470,7 +538,10 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     <!-- ALARMAS -->
     <section>
-      <div class="section-title">🚨 Alarmas Activas</div>
+      <div class="section-title">
+        <svg class="svg-icon sec-icon" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        Alarmas Activas
+      </div>
       <div class="panel" id="panel-alarmas">
         <div class="no-alarmas">Sin alarmas activas</div>
       </div>
@@ -480,7 +551,10 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
   <!-- REGISTRO DE OPERACIONES -->
   <section>
-    <div class="section-title">🗂️ Registro de Operaciones</div>
+    <div class="section-title">
+      <svg class="svg-icon sec-icon" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+      Registro de Operaciones
+    </div>
     <div class="panel" id="panel-ops" style="max-height:220px;overflow-y:auto">
       <div style="color:#8899bb;font-style:italic;font-size:.85rem">Sin operaciones registradas</div>
     </div>
@@ -493,11 +567,11 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 const socket = io({transports:['websocket','polling']});
 
 socket.on('connect', () => {
-  document.getElementById('badge-conn').textContent = '✅ WebSocket OK';
+  document.getElementById('badge-conn').innerHTML = '<svg class="svg-icon" style="width:13px;height:13px;color:#00e676;margin-right:5px;vertical-align:-2px;" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> WebSocket Activo';
   socket.emit('get_history');
 });
 socket.on('disconnect', () => {
-  document.getElementById('badge-conn').textContent = '❌ Desconectado';
+  document.getElementById('badge-conn').innerHTML = '<svg class="svg-icon" style="width:13px;height:13px;color:#ff4d6d;margin-right:5px;vertical-align:-2px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Desconectado';
 });
 
 // ---- Chart.js ----
@@ -619,7 +693,7 @@ function actualizarGrafica(rows) {
 function renderAlarmas(alarmas) {
   const p = document.getElementById('panel-alarmas');
   if (!alarmas || alarmas.length === 0) {
-    p.innerHTML = '<div class="no-alarmas">✅ Sin alarmas activas</div>';
+    p.innerHTML = '<div class="no-alarmas"><svg class="svg-icon" style="width:16px;height:16px;color:#00e676;margin-right:6px;vertical-align:-3px;" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg> Sistema Nominal — Sin alarmas activas</div>';
     return;
   }
   p.innerHTML = alarmas.slice(0,10).map(a =>
@@ -689,7 +763,7 @@ function enviarComando(cmd) {
   const labels = {ON: 'ENCENDER', OFF: 'APAGAR'};
   if (!confirm(`¿Confirma ${labels[cmd]} la bomba de riego?`)) return;
 
-  document.getElementById('ctrl-feedback').textContent = '⏳ Enviando comando…';
+  document.getElementById('ctrl-feedback').innerHTML = '<span style="color:#00b4d8">Procesando instrucción de control…</span>';
 
   fetch('/api/control', {
     method: 'POST',
@@ -698,11 +772,12 @@ function enviarComando(cmd) {
   })
   .then(r => r.json())
   .then(d => {
-    document.getElementById('ctrl-feedback').textContent =
-      d.ok ? `✅ Comando ${cmd} enviado (${d.timestamp})` : `❌ Error: ${d.error}`;
+    document.getElementById('ctrl-feedback').innerHTML =
+      d.ok ? `<span style="color:#00e676">Instrucción ${cmd} ejecutada correctamente (${d.timestamp})</span>`
+           : `<span style="color:#ff4d6d">Error en ejecución: ${d.error}</span>`;
   })
   .catch(e => {
-    document.getElementById('ctrl-feedback').textContent = '❌ Error de red: ' + e;
+    document.getElementById('ctrl-feedback').innerHTML = '<span style="color:#ff4d6d">Fallo de comunicación de red: ' + e + '</span>';
   });
 }
 </script>
@@ -801,7 +876,7 @@ def ws_get_history():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("  🌱 Dashboard IoT Riego — Iniciando servidor")
+    print("  Dashboard IoT Riego — Iniciando servidor")
     print(f"  URL: http://localhost:{FLASK_PORT}/")
     print(f"  MQTT Broker: {MQTT_BROKER}:{MQTT_PORT}")
     print(f"  DB: {DB_PATH}")

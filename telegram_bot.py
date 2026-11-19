@@ -185,15 +185,15 @@ def check_alarms(data: dict) -> list[str]:
     if vwc is not None:
         if vwc < ALARM_VWC_MIN:
             alarms.append(
-                f"⚠️ Humedad VWC muy baja: {vwc:.1f}% (mín {ALARM_VWC_MIN}%)"
+                f"[ALERTA] Humedad VWC por debajo del umbral mínimo: {vwc:.1f}% (mínimo: {ALARM_VWC_MIN}%)"
             )
         elif vwc > ALARM_VWC_MAX:
             alarms.append(
-                f"⚠️ Humedad VWC muy alta: {vwc:.1f}% (máx {ALARM_VWC_MAX}%)"
+                f"[ALERTA] Humedad VWC por encima del umbral máximo: {vwc:.1f}% (máximo: {ALARM_VWC_MAX}%)"
             )
     if temp is not None and temp > ALARM_TEMP_MAX:
         alarms.append(
-            f"🌡️ Temperatura crítica: {temp:.1f}°C (máx {ALARM_TEMP_MAX}°C)"
+            f"[ALERTA] Temperatura crítica detectada: {temp:.1f}°C (umbral: {ALARM_TEMP_MAX}°C)"
         )
     return alarms
 
@@ -213,10 +213,10 @@ def reject_unauthorized(chat_id: int) -> None:
     log.warning(f"[AUTH] Intento no autorizado | timestamp={ts} | chat_id={chat_id}")
     send_message(
         chat_id,
-        "🚫 *Acceso denegado.*\n"
-        "No tienes autorización para interactuar con este bot.\n"
-        f"Tu ID: `{chat_id}`\n"
-        "Contacta al administrador del sistema.",
+        "*ACCESO DENEGADO*\n"
+        "El identificador no cuenta con autorización en el sistema.\n"
+        f"Identificador: `{chat_id}`\n"
+        "Comuníquese con el administrador del sistema.",
     )
 
 
@@ -243,7 +243,7 @@ def _on_connect(client, userdata, flags, rc):
         log.info(f"[MQTT] Conectado a {MQTT_BROKER}:{MQTT_PORT}")
         client.subscribe(MQTT_TOPIC_DATA)
         log.info(f"[MQTT] Suscrito a {MQTT_TOPIC_DATA}")
-        notify_all_authorized("🟢 *Bot IoT conectado* al broker MQTT.\nSistema en línea.")
+        notify_all_authorized("[SISTEMA] Enlace establecido con el broker MQTT.\nServicio en línea.")
     else:
         mqtt_connected = False
         log.error(f"[MQTT] Fallo de conexión rc={rc}")
@@ -253,7 +253,7 @@ def _on_disconnect(client, userdata, rc):
     global mqtt_connected
     mqtt_connected = False
     log.warning(f"[MQTT] Desconectado rc={rc}")
-    notify_all_authorized("🔴 *Desconexión del broker MQTT.*\nIntentando reconexión…")
+    notify_all_authorized("[SISTEMA] Desconexión detectada del broker MQTT.\nIniciando procedimiento de reconexión…")
 
 
 def _on_message(client, userdata, msg):
@@ -269,20 +269,20 @@ def _on_message(client, userdata, msg):
         # Cambio de estado de bomba
         if curr_bomba == "ON" and prev_bomba == "OFF":
             notify_all_authorized(
-                f"💧 *RIEGO INICIADO*\nHumedad VWC: {vwc}%\n"
-                "Actuador energizado automáticamente."
+                f"*NOTIFICACIÓN: RIEGO INICIADO*\nHumedad volumétrica (VWC): {vwc}%\n"
+                "Actuador hidráulico energizado automáticamente."
             )
         elif curr_bomba == "OFF" and prev_bomba == "ON":
             notify_all_authorized(
-                f"✅ *RIEGO FINALIZADO*\nHumedad VWC: {vwc}%\n"
-                "Actuador desenergizado."
+                f"*NOTIFICACIÓN: RIEGO FINALIZADO*\nHumedad volumétrica (VWC): {vwc}%\n"
+                "Actuador hidráulico desenergizado."
             )
 
         # Alarmas
         alarms = check_alarms(data)
         if alarms:
             alarm_text = "\n".join(alarms)
-            notify_all_authorized(f"🔔 *ALARMAS ACTIVAS*\n{alarm_text}")
+            notify_all_authorized(f"*NOTIFICACIÓN: ALARMAS ACTIVAS DEL SISTEMA*\n{alarm_text}")
 
         _last_telemetry = data
 
@@ -406,20 +406,20 @@ def build_main_menu() -> dict:
     return {
         "inline_keyboard": [
             [
-                {"text": "📊 Estado del Sistema", "callback_data": "estado"},
-                {"text": "🌡️ Telemetría Actual",  "callback_data": "telemetria"},
+                {"text": "Estado del Sistema", "callback_data": "estado"},
+                {"text": "Telemetría Actual",  "callback_data": "telemetria"},
             ],
             [
-                {"text": "🔌 Estado Broker MQTT", "callback_data": "broker"},
-                {"text": "🔔 Alarmas Activas",    "callback_data": "alarmas"},
+                {"text": "Estado Broker MQTT", "callback_data": "broker"},
+                {"text": "Alarmas Activas",    "callback_data": "alarmas"},
             ],
             [
-                {"text": "💧 Encender Riego", "callback_data": "riego_on_confirm"},
-                {"text": "🛑 Apagar Riego",   "callback_data": "riego_off_confirm"},
+                {"text": "Activar Riego (ON)", "callback_data": "riego_on_confirm"},
+                {"text": "Desactivar Riego (OFF)", "callback_data": "riego_off_confirm"},
             ],
             [
-                {"text": "📋 Historial", "callback_data": "historial"},
-                {"text": "❓ Ayuda",     "callback_data": "ayuda"},
+                {"text": "Historial de Registros", "callback_data": "historial"},
+                {"text": "Guía de Comandos",     "callback_data": "ayuda"},
             ],
         ]
     }
@@ -431,8 +431,8 @@ def build_confirm_menu(action: str) -> dict:
     return {
         "inline_keyboard": [
             [
-                {"text": "✅ Confirmar", "callback_data": confirm_cb},
-                {"text": "❌ Cancelar", "callback_data": "cancel"},
+                {"text": "Confirmar Operación", "callback_data": confirm_cb},
+                {"text": "Cancelar Operación", "callback_data": "cancel"},
             ]
         ]
     }
@@ -444,46 +444,46 @@ def build_confirm_menu(action: str) -> dict:
 
 def _format_estado(row: tuple) -> str:
     fecha, disp, vwc, trig, temp, hum_a, vpd, bomba, timeout = row
-    bomba_icon = "💧 ON" if bomba == "ON" else "⛔ OFF"
+    bomba_icon = "ACTIVADA (ON)" if bomba == "ON" else "DESACTIVADA (OFF)"
     return (
-        f"*📊 ESTADO ACTUAL DEL SISTEMA IoT*\n"
+        f"*ESTADO ACTUAL DEL SISTEMA IOT*\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"🕐 Fecha/Hora: `{fecha}`\n"
-        f"📟 Dispositivo: `{disp}`\n"
-        f"💦 Humedad VWC: `{vwc:.1f}%`\n"
-        f"🎯 Umbral MAD: `{trig:.1f}%`\n"
-        f"🌡️ Temperatura: `{temp:.1f}°C`\n"
-        f"💨 Humedad Aire: `{hum_a:.1f}%`\n"
-        f"📉 VPD: `{vpd:.2f} kPa`\n"
-        f"🔌 Bomba: *{bomba_icon}*\n"
-        f"⏱️ Alerta Timeout: {'⚠️ SÍ' if timeout else '✅ NO'}"
+        f"Fecha y Hora: `{fecha}`\n"
+        f"Dispositivo: `{disp}`\n"
+        f"Humedad VWC: `{vwc:.1f}%`\n"
+        f"Umbral MAD: `{trig:.1f}%`\n"
+        f"Temperatura: `{temp:.1f}°C`\n"
+        f"Humedad del Aire: `{hum_a:.1f}%`\n"
+        f"Déficit Presión Vapor (VPD): `{vpd:.2f} kPa`\n"
+        f"Bomba de Riego: *{bomba_icon}*\n"
+        f"Alerta de Timeout: {'ACTIVA' if timeout else 'NORMAL'}"
     )
 
 
 def _format_telemetria_list(rows: list[tuple]) -> str:
     if not rows:
-        return "⚠️ No hay registros en la base de datos."
-    lines = ["*🌡️ ÚLTIMAS LECTURAS DE TELEMETRÍA*\n━━━━━━━━━━━━━━━━━━━━"]
+        return "[AVISO] No se registran datos en la base de datos."
+    lines = ["*ÚLTIMAS LECTURAS DE TELEMETRÍA*\n━━━━━━━━━━━━━━━━━━━━"]
     for i, row in enumerate(rows, 1):
         fecha, _, vwc, _, temp, hum_a, vpd, bomba, _ = row
         lines.append(
-            f"\n*#{i}* `{fecha}`\n"
-            f"  💦 VWC: `{vwc:.1f}%` | 🌡️ Temp: `{temp:.1f}°C` | "
-            f"💨 HR: `{hum_a:.1f}%` | 🔌 Bomba: `{bomba}`"
+            f"\n*Registro #{i}* `{fecha}`\n"
+            f"  VWC: `{vwc:.1f}%` | Temp: `{temp:.1f}°C` | "
+            f"HR: `{hum_a:.1f}%` | Bomba: `{bomba}`"
         )
     return "\n".join(lines)
 
 
 def _format_historial(rows: list[tuple]) -> str:
     if not rows:
-        return "⚠️ No hay registros en la base de datos."
-    lines = ["*📋 HISTORIAL — ÚLTIMOS 10 REGISTROS*\n━━━━━━━━━━━━━━━━━━━━"]
+        return "[AVISO] No se registran datos en la base de datos."
+    lines = ["*HISTORIAL DE REGISTROS DEL SISTEMA*\n━━━━━━━━━━━━━━━━━━━━"]
     for i, row in enumerate(rows, 1):
         fecha, _, vwc, trig, temp, hum_a, vpd, bomba, timeout = row
         lines.append(
-            f"\n*#{i}* `{fecha}`\n"
-            f"  VWC:`{vwc:.1f}%` Tmp:`{temp:.1f}°C` Bomba:`{bomba}` "
-            f"{'⚠️' if timeout else ''}"
+            f"\n*Registro #{i}* `{fecha}`\n"
+            f"  VWC: `{vwc:.1f}%` | Temp: `{temp:.1f}°C` | Bomba: `{bomba}` "
+            f"{'[TIMEOUT]' if timeout else ''}"
         )
     return "\n".join(lines)
 
@@ -494,9 +494,9 @@ def _format_historial(rows: list[tuple]) -> str:
 
 def handle_start(chat_id: int) -> None:
     text = (
-        "🌱 *Sistema IoT de Riego — Telemando*\n"
+        "*Sistema IoT de Riego — Módulo de Telemando*\n"
         "━━━━━━━━━━━━━━━━━━━━\n"
-        "Selecciona una opción del menú:"
+        "Seleccione una opción del panel de control:"
     )
     send_message_with_menu(chat_id, text, build_main_menu())
     log_operation(chat_id, "/start", "menú principal enviado")
@@ -507,7 +507,7 @@ def handle_estado(chat_id: int) -> None:
     if row:
         text = _format_estado(row)
     else:
-        text = "⚠️ No hay registros disponibles en la base de datos."
+        text = "[AVISO] No se registran datos disponibles en la base de datos."
     send_message_with_menu(chat_id, text, build_main_menu())
     log_operation(chat_id, "/estado", "estado enviado")
 
@@ -521,12 +521,12 @@ def handle_telemetria(chat_id: int) -> None:
 
 def handle_broker(chat_id: int) -> None:
     if mqtt_connected:
-        status = "🟢 *CONECTADO*"
+        status = "*CONECTADO*"
         detail = f"Broker: `{MQTT_BROKER}:{MQTT_PORT}`"
     else:
-        status = "🔴 *DESCONECTADO*"
+        status = "*DESCONECTADO*"
         detail = "El cliente MQTT no tiene conexión activa."
-    text = f"*🔌 Estado del Broker MQTT*\n{status}\n{detail}"
+    text = f"*Estado del Broker MQTT*\n{status}\n{detail}"
     send_message_with_menu(chat_id, text, build_main_menu())
     log_operation(chat_id, "/broker", "conectado" if mqtt_connected else "desconectado")
 
@@ -538,11 +538,11 @@ def handle_alarmas(chat_id: int) -> None:
         data = {"humedad_vwc": vwc, "temperatura": temp}
         alarms = check_alarms(data)
         if alarms:
-            text = "🔔 *ALARMAS ACTIVAS*\n━━━━━━━━━━━━━━━━━━━━\n" + "\n".join(alarms)
+            text = "*ALARMAS ACTIVAS*\n━━━━━━━━━━━━━━━━━━━━\n" + "\n".join(alarms)
         else:
-            text = "✅ *Sin alarmas activas.*\nTodos los parámetros dentro de rangos normales."
+            text = "*SISTEMA NOMINAL*\nTodos los parámetros edafoclimáticos se encuentran dentro de los rangos de tolerancia."
     else:
-        text = "⚠️ No hay datos suficientes para evaluar alarmas."
+        text = "[AVISO] Datos insuficientes para evaluar alarmas."
     send_message_with_menu(chat_id, text, build_main_menu())
     log_operation(chat_id, "/alarmas", "alarmas consultadas")
 
@@ -556,19 +556,19 @@ def handle_historial(chat_id: int) -> None:
 
 def handle_ayuda(chat_id: int) -> None:
     text = (
-        "*❓ AYUDA — COMANDOS DISPONIBLES*\n"
+        "*GUÍA DE COMANDOS DEL SISTEMA*\n"
         "━━━━━━━━━━━━━━━━━━━━\n"
-        "• /start — Menú principal con botones\n"
-        "• /estado — Último estado del sistema\n"
-        "• /telemetria — Últimas 5 lecturas\n"
-        "• /broker — Estado de conexión MQTT\n"
-        "• /riego\\_on — Encender bomba (con confirmación)\n"
-        "• /riego\\_off — Apagar bomba (con confirmación)\n"
-        "• /alarmas — Alarmas activas\n"
-        "• /historial — Últimos 10 registros\n\n"
-        "_Umbrales de alarma:_\n"
-        f"  💦 VWC < {ALARM_VWC_MIN}% o > {ALARM_VWC_MAX}%\n"
-        f"  🌡️ Temperatura > {ALARM_TEMP_MAX}°C"
+        "• /start — Menú interactivo de opciones\n"
+        "• /estado — Consulta de telemetría actual\n"
+        "• /telemetria — Resumen de últimas 5 lecturas\n"
+        "• /broker — Estado de enlace con broker MQTT\n"
+        "• /riego\\_on — Activación manual de bomba (con confirmación)\n"
+        "• /riego\\_off — Desactivación manual de bomba (con confirmación)\n"
+        "• /alarmas — Evaluación de umbrales agronómicos\n"
+        "• /historial — Registro de últimas 10 mediciones\n\n"
+        "_Límites de operación:_\n"
+        f"  Humedad VWC: {ALARM_VWC_MIN}% a {ALARM_VWC_MAX}%\n"
+        f"  Temperatura máxima: {ALARM_TEMP_MAX}°C"
     )
     send_message_with_menu(chat_id, text, build_main_menu())
     log_operation(chat_id, "/ayuda", "ayuda enviada")
@@ -576,10 +576,10 @@ def handle_ayuda(chat_id: int) -> None:
 
 def handle_riego_on_confirm(chat_id: int) -> None:
     text = (
-        "💧 *CONFIRMAR ENCENDIDO DE RIEGO*\n"
+        "*CONFIRMACIÓN DE INSTRUCCIÓN: ENCENDIDO DE BOMBA*\n"
         "━━━━━━━━━━━━━━━━━━━━\n"
-        "¿Deseas *activar la bomba* manualmente?\n"
-        "Esta acción publicará `ON` en el broker MQTT."
+        "¿Desea *activar la bomba* manualmente?\n"
+        "Esta instrucción publicará `ON` en el broker MQTT."
     )
     send_message_with_menu(chat_id, text, build_confirm_menu("on"))
     log_operation(chat_id, "riego_on_confirm", "confirmación solicitada")
@@ -587,10 +587,10 @@ def handle_riego_on_confirm(chat_id: int) -> None:
 
 def handle_riego_off_confirm(chat_id: int) -> None:
     text = (
-        "🛑 *CONFIRMAR APAGADO DE RIEGO*\n"
+        "*CONFIRMACIÓN DE INSTRUCCIÓN: APAGADO DE BOMBA*\n"
         "━━━━━━━━━━━━━━━━━━━━\n"
-        "¿Deseas *desactivar la bomba* manualmente?\n"
-        "Esta acción publicará `OFF` en el broker MQTT."
+        "¿Desea *desactivar la bomba* manualmente?\n"
+        "Esta instrucción publicará `OFF` en el broker MQTT."
     )
     send_message_with_menu(chat_id, text, build_confirm_menu("off"))
     log_operation(chat_id, "riego_off_confirm", "confirmación solicitada")
@@ -600,20 +600,20 @@ def handle_confirm_on(chat_id: int) -> None:
     ok = publish_command("ON")
     if ok:
         text = (
-            "✅ *Comando de ENCENDIDO enviado.*\n"
+            "*Comando de encendido transmitido exitosamente.*\n"
             "Publicado `ON` en `hogar/planta01/control`.\n"
             "Esperando confirmación del ESP32."
         )
         log_operation(chat_id, "confirm_on", "ON publicado OK")
         notify_all_authorized(
-            f"💧 *RIEGO ACTIVADO MANUALMENTE*\n"
+            f"*NOTIFICACIÓN: RIEGO ACTIVADO MANUALMENTE*\n"
             f"Operador (Chat ID): `{chat_id}`\n"
             f"Hora: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`"
         )
     else:
         text = (
-            "❌ *Error al enviar comando.*\n"
-            "El broker MQTT no está disponible. Reintenta más tarde."
+            "[ERROR] Fallo al transmitir el comando.\n"
+            "El broker MQTT no se encuentra disponible."
         )
         log_operation(chat_id, "confirm_on", "ERROR: MQTT no conectado")
     send_message_with_menu(chat_id, text, build_main_menu())
@@ -623,27 +623,27 @@ def handle_confirm_off(chat_id: int) -> None:
     ok = publish_command("OFF")
     if ok:
         text = (
-            "✅ *Comando de APAGADO enviado.*\n"
+            "*Comando de apagado transmitido exitosamente.*\n"
             "Publicado `OFF` en `hogar/planta01/control`.\n"
             "Esperando confirmación del ESP32."
         )
         log_operation(chat_id, "confirm_off", "OFF publicado OK")
         notify_all_authorized(
-            f"🛑 *RIEGO DESACTIVADO MANUALMENTE*\n"
+            f"*NOTIFICACIÓN: RIEGO DESACTIVADO MANUALMENTE*\n"
             f"Operador (Chat ID): `{chat_id}`\n"
             f"Hora: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`"
         )
     else:
         text = (
-            "❌ *Error al enviar comando.*\n"
-            "El broker MQTT no está disponible. Reintenta más tarde."
+            "[ERROR] Fallo al transmitir el comando.\n"
+            "El broker MQTT no se encuentra disponible."
         )
         log_operation(chat_id, "confirm_off", "ERROR: MQTT no conectado")
     send_message_with_menu(chat_id, text, build_main_menu())
 
 
 def handle_cancel(chat_id: int) -> None:
-    text = "❌ *Operación cancelada.*\nNo se realizó ningún cambio."
+    text = "[AVISO] Operación cancelada. No se aplicaron modificaciones."
     send_message_with_menu(chat_id, text, build_main_menu())
     log_operation(chat_id, "cancel", "operación cancelada")
 
@@ -702,12 +702,12 @@ def _process_message(update: dict) -> None:
             handler(chat_id)
         except Exception as exc:
             log.error(f"Error en handler de '{command}': {exc}")
-            send_message(chat_id, f"❌ Error interno: {exc}")
+            send_message(chat_id, f"[ERROR] Fallo en procesamiento interno: {exc}")
     else:
         send_message(
             chat_id,
-            f"❓ Comando no reconocido: `{command}`\n"
-            "Usa /ayuda para ver los comandos disponibles."
+            f"[AVISO] Comando no reconocido: `{command}`\n"
+            "Ejecute /ayuda para consultar el catálogo de instrucciones disponibles."
         )
 
 
@@ -722,7 +722,7 @@ def _process_callback_query(update: dict) -> None:
         return
 
     # Responder al callback para quitar el indicador de carga
-    answer_callback_query(callback_query_id, "⏳")
+    answer_callback_query(callback_query_id, "")
 
     if not is_authorized(chat_id):
         reject_unauthorized(chat_id)
@@ -734,11 +734,11 @@ def _process_callback_query(update: dict) -> None:
             handler(chat_id)
         except Exception as exc:
             log.error(f"Error en callback handler '{data}': {exc}")
-            send_message(chat_id, f"❌ Error interno: {exc}")
+            send_message(chat_id, f"[ERROR] Fallo en procesamiento de callback: {exc}")
     else:
         send_message(
             chat_id,
-            f"❓ Acción no reconocida: `{data}`"
+            f"[AVISO] Acción no reconocida: `{data}`"
         )
 
 
@@ -855,14 +855,14 @@ if __name__ == "__main__":
     # --- Mensaje de inicio a todos los autorizados ---
     # Esperar brevemente a que MQTT conecte
     time.sleep(2)
-    broker_status = "🟢 CONECTADO" if mqtt_connected else "🔴 NO CONECTADO"
+    broker_status = "CONECTADO" if mqtt_connected else "NO CONECTADO"
     start_msg = (
-        "🌱 *Bot IoT de Riego — En Línea*\n"
+        "*Módulo de Telemando IoT — En Línea*\n"
         "━━━━━━━━━━━━━━━━━━━━\n"
-        f"🕐 Inicio: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`\n"
-        f"🔌 MQTT: {broker_status}\n"
-        f"💾 BD: `{DB_NAME}`\n\n"
-        "Usa /start para acceder al menú principal."
+        f"Estampa temporal: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`\n"
+        f"Broker MQTT: `{broker_status}`\n"
+        f"Base de datos: `{DB_NAME}`\n\n"
+        "Ejecute /start para desplegar el panel de control interactivo."
     )
     notify_all_authorized(start_msg)
 
@@ -873,4 +873,4 @@ if __name__ == "__main__":
             time.sleep(1)
     except KeyboardInterrupt:
         log.info("Interrupción del usuario. Finalizando…")
-        notify_all_authorized("⛔ *Bot IoT detenido* por el operador.")
+        notify_all_authorized("[AVISO] Servicio de telemando detenido por el operador.")

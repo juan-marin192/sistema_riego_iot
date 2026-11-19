@@ -229,7 +229,7 @@ def verificar_alarmas(data):
             logger.warning(f"[ALARMA] {tipo_alarma} | valor={valor} | umbral={umbral} | dispositivo={dispositivo}")
 
             msg_alarma = (
-                f"⚠️ *ALARMA: {tipo_alarma}*\n"
+                f"*ALERTA DEL SISTEMA: {tipo_alarma}*\n"
                 f"• Valor actual: {valor}\n"
                 f"• Umbral: {umbral}\n"
                 f"• Dispositivo: {dispositivo}\n"
@@ -296,9 +296,9 @@ def enviar_menu_principal(chat_id):
     reply_markup = {
         "inline_keyboard": [
             [
-                {"text": "📊 Estado", "callback_data": "/estado"},
-                {"text": "💧 Riego ON", "callback_data": "/riego_on"},
-                {"text": "🛑 Riego OFF", "callback_data": "/riego_off"}
+                {"text": "Estado del Sistema", "callback_data": "/estado"},
+                {"text": "Activar Riego (ON)", "callback_data": "/riego_on"},
+                {"text": "Desactivar Riego (OFF)", "callback_data": "/riego_off"}
             ]
         ]
     }
