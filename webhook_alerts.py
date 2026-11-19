@@ -1,7 +1,6 @@
 """
 webhook_alerts.py - Sistema de Notificaciones, Webhooks y Alertas IoT
 ======================================================================
-Implementa la FASE 4 de las especificaciones del proyecto:
 - Configuración de webhooks para eventos críticos (umbrales, actuadores, broker, desconexiones)
 - Deduplicación / control de spam con ventana de cooldown
 - Mecanismo de reintentos exponenciales con control de errores

@@ -1,5 +1,5 @@
 """
-dashboard_app.py — FASE 4: Dashboard Web IoT de Riego Automático
+dashboard_app.py — Dashboard Web IoT de Riego Automático
 Flask + Flask-SocketIO + MQTT integrado
 """
 

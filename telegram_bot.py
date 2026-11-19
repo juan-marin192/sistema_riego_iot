@@ -1,5 +1,5 @@
 """
-telegram_bot.py — FASE 4: Integración avanzada de Telegram para el sistema IoT de riego.
+telegram_bot.py — Integración de Telegram para el sistema IoT de riego.
 
 Características:
   - Polling manual con requests (sin python-telegram-bot)
