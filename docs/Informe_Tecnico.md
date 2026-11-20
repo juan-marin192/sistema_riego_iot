@@ -1,9 +1,7 @@
-# INFORME TÉCNICO FINAL: AUDITORÍA, FORTALECIMIENTO DE SEGURIDAD E IMPLEMENTACIÓN DE MEJORAS EN PROYECTO IoT DE RIEGO
+# INFORME TÉCNICO: AUDITORÍA, FORTALECIMIENTO DE SEGURIDAD E IMPLEMENTACIÓN DE MEJORAS EN PROYECTO IoT DE RIEGO
 
 **Proyecto:** Sistema IoT de Riego Automático Inteligente  
-**Ubicación:** `c:\Users\USUARIO\Downloads\Proyecto-Wowki`  
-**Fecha de Auditoría y Certificación:** 17 de Noviembre de 2026  
-**Responsable Técnico:** Ingeniero Senior en IoT, Ciberseguridad, MQTT, Python y Sistemas Distribuidos  
+**Fecha de Auditoría y Certificación:** Noviembre de 2026
 
 ---
 
@@ -32,7 +30,7 @@ flowchart TD
 
 ---
 
-## 3. VULNERABILIDADES IDENTIFICADAS
+## 3. VULNERABILIDADES IDENTIFICADAS EN V.1 DEL MVP
 
 Durante la auditoría técnica exhaustiva se detectaron vulnerabilidades críticas de ciberseguridad y arquitectura:
 
@@ -57,7 +55,7 @@ Durante la auditoría técnica exhaustiva se detectaron vulnerabilidades crític
 
 ## 4. MEJORAS IMPLEMENTADAS
 
-Se fortaleció y modernizó el proyecto conservando el 100% de la funcionalidad preexistente bajo un modelo de mínimo privilegio y defensa en profundidad:
+Se fortaleció y modernizó el proyecto conservando la funcionalidad preexistente bajo un modelo de mínimo privilegio y defensa en profundidad:
 
 1. **Preservación y Copia de Respaldo:**
    - Creación de copia íntegra original: `listener_iot_riego_BACKUP.py`.
@@ -88,7 +86,7 @@ Se fortaleció y modernizó el proyecto conservando el 100% de la funcionalidad 
    - Gestor de alarmas en memoria (`AlarmManager`) y endpoints REST (`/api/telemetria`, `/api/estado`, `/api/alarmas`, `/api/control`).
 7. **Bot de Telegram Avanzado e Interactivo (`telegram_bot.py`):**
    - Teclados interactivos mediante botones inline (`InlineKeyboardMarkup`).
-   - Flujo de doble confirmación ("¿Está seguro de encender el riego? ✅ Confirmar / ❌ Cancelar").
+   - Flujo de doble confirmación ("¿Está seguro de encender el riego? Confirmar / Cancelar").
    - Autorización multi-usuario (`AUTHORIZED_CHAT_IDS`).
    - Historial de operaciones en memoria (máx. 200).
    - Notificación simultánea a todos los operadores registrados.
@@ -105,12 +103,11 @@ Se fortaleció y modernizó el proyecto conservando el 100% de la funcionalidad 
 
 ---
 
-## 5. ARCHIVOS MODIFICADOS Y NUEVOS ARCHIVOS CREADOS
+## 5. ARCHIVOS
 
 | Archivo | Tipo | Estado | Propósito y Cambios Realizados |
 |---|---|---|---|
 | `listener_iot_riego.py` | Python | Modificado | Carga segura `.env`, soporte TLS/Auth, tabla operaciones y alarmas, triggers de webhooks, logging rotativo a `logs/backend.log`, reconexión automática. |
-| `listener_iot_riego_BACKUP.py` | Python | Nuevo (Backup) | Copia exacta del archivo original antes de cualquier modificación. |
 | `config.py` | Python | Nuevo | Gestión centralizada de variables de entorno, tópicos, allowlist de comandos y configuración TLS. |
 | `.env.example` | Config | Nuevo | Plantilla pública documentada sin valores sensibles reales. |
 | `.env` | Config | Nuevo (Protegido) | Archivo de configuración local con credenciales para entorno de ejecución. |
@@ -126,8 +123,6 @@ Se fortaleció y modernizó el proyecto conservando el 100% de la funcionalidad 
 | `webhook_alerts.py` | Python | Nuevo | Sistema de webhooks HTTP con firma HMAC-SHA256, deduplicación y reintentos. |
 | `test_security_and_integration.py` | Python | Nuevo | Suite completa de 13 pruebas técnicas y de seguridad automatizadas. |
 | `requirements.txt` | Config | Modificado | Inclusión de `python-dotenv`, `flask`, `flask-socketio`, `cryptography`. |
-| `registros/resultado_pruebas.json` | JSON | Nuevo | Evidencia técnica de ejecución del banco de pruebas (13/13 aprobadas). |
-| `INFORME_TECNICO_FINAL.md` | Markdown | Nuevo | Documento integral de auditoría, arquitectura, seguridad y operación. |
 
 ---
 
@@ -259,14 +254,14 @@ El bot de Telegram (`telegram_bot.py` y `listener_iot_riego.py`) cuenta con un m
 ### Botones y Comandos Disponibles
 | Comando / Callback | Etiqueta en Menú | Acción y Funcionalidad |
 |---|---|---|
-| `/start`, `/ayuda` | ❓ Ayuda | Despliega el menú interactivo con botones inline. |
-| `/estado` | 📊 Estado del Sistema | Consulta la base de datos y entrega un resumen formateado de telemetría y bomba. |
-| `/telemetria` | 🌡️ Telemetría Actual | Presenta las últimas 5 mediciones registradas. |
-| `/broker` | 🔌 Estado Broker MQTT | Notifica si el backend mantiene enlace activo con el broker MQTT (`🟢 Conectado` / `🔴 Desconectado`). |
-| `/riego_on` | 💧 Encender Riego | Solicita confirmación de seguridad con botones `✅ Confirmar` y `❌ Cancelar`. Al confirmar, publica `ON` en MQTT. |
-| `/riego_off` | 🛑 Apagar Riego | Solicita confirmación. Al confirmar, publica `OFF` en MQTT. |
-| `/alarmas` | 🔔 Alarmas Activas | Evalúa umbrales agronómicos y muestra alertas pendientes de resolución. |
-| `/historial` | 📋 Historial | Lista las últimas 10 operaciones y transiciones del actuador. |
+| `/start`, `/ayuda` | Ayuda | Despliega el menú interactivo con botones inline. |
+| `/estado` | Estado del Sistema | Consulta la base de datos y entrega un resumen formateado de telemetría y bomba. |
+| `/telemetria` | Telemetría Actual | Presenta las últimas 5 mediciones registradas. |
+| `/broker` | Estado Broker MQTT | Notifica si el backend mantiene enlace activo con el broker MQTT (`🟢 Conectado` / `🔴 Desconectado`). |
+| `/riego_on` | Encender Riego | Solicita confirmación de seguridad con botones `✅ Confirmar` y `❌ Cancelar`. Al confirmar, publica `ON` en MQTT. |
+| `/riego_off` | Apagar Riego | Solicita confirmación. Al confirmar, publica `OFF` en MQTT. |
+| `/alarmas` | Alarmas Activas | Evalúa umbrales agronómicos y muestra alertas pendientes de resolución. |
+| `/historial` | Historial | Lista las últimas 10 operaciones y transiciones del actuador. |
 
 ### Controles de Ciberseguridad en Telegram
 - **Validación de Identidad:** Rechazo de mensajes provenientes de chat IDs no presentes en `AUTHORIZED_CHAT_IDS`.
@@ -275,29 +270,8 @@ El bot de Telegram (`telegram_bot.py` y `listener_iot_riego.py`) cuenta con un m
 
 ---
 
-## 12. RESULTADOS DE LAS PRUEBAS REALIZADAS
 
-Se ejecutó la suite técnica integral `test_security_and_integration.py` verificando las 13 pruebas requeridas con un resultado de **13/13 (100% de éxito)**:
-
-| # | Prueba Técnica de Seguridad y Funcionamiento | Duración | Resultado | Detalle de Verificación Técnica |
-|---|---|---|:---:|---|
-| 1 | Rechazo de conexiones MQTT sin autenticación | 0.4 ms | ✅ EXITOSA | `validate_mqtt_credentials` rechaza conexiones con usuario o clave vacíos. |
-| 2 | Rechazo de conexiones con credenciales incorrectas | 0.0 ms | ✅ EXITOSA | Validación de código broker rc=5 (`CONNACK_REFUSED_NOT_AUTHORIZED`). |
-| 3 | Validación de certificados TLS | 19.4 ms | ✅ EXITOSA | Verificados certificados X.509 RSA 2048: CA y Server con validez 10 años y contexto SSL. |
-| 4 | Bloqueo de publicaciones en tópicos privados (ACL) | 0.4 ms | ✅ EXITOSA | ACL Mosquitto restringe a `esp32_device`: solo `write` en telemetría, `write` prohibido en control. |
-| 5 | Bloqueo de comandos de usuarios no autorizados | 0.1 ms | ✅ EXITOSA | Usuario no registrado (`9999999999`) bloqueado por allowlist; registrado en log. |
-| 6 | Validación de identidad de los dispositivos | 0.1 ms | ✅ EXITOSA | Dispositivo suplantador `'Atacante_Externo_Rogue'` detectado y rechazado. |
-| 7 | Encendido y apagado mediante usuarios autorizados | 7.1 ms | ✅ EXITOSA | Usuario autorizado ejecutó `/riego_on` y `/riego_off`; guardado en `operaciones`. |
-| 8 | Recepción de telemetría en tiempo real | 4.7 ms | ✅ EXITOSA | Telemetría recibida, deserializada y persistida en SQLite (VWC=31.4%, Temp=22.8°C). |
-| 9 | Medición real de latencia | 12.7 ms | ✅ EXITOSA | Latencia real medida ida y vuelta (12.68 ms) con `time.perf_counter`. |
-| 10 | Activación de alarmas por umbrales | 17.5 ms | ✅ EXITOSA | Alarmas activadas (`HUMEDAD_CRITICA_BAJA`, `TEMPERATURA_ALTA`, `VPD_CRITICO`) y guardadas en BD. |
-| 11 | Envío y recepción de notificaciones / Webhooks | 508.9 ms | ✅ EXITOSA | Despacho HMAC-SHA256 y deduplicación de alertas por cooldown verificada. |
-| 12 | Control de actuadores desde Telegram | 0.2 ms | ✅ EXITOSA | Menú interactivo inline de 8 opciones con confirmación para acciones críticas. |
-| 13 | Persistencia de información en la base de datos | 4.6 ms | ✅ EXITOSA | Esquema íntegro con 5 tablas operativas: `telemetria`, `operaciones`, `alarmas`, `webhooks_config`, `webhook_logs`. |
-
----
-
-## 13. PROBLEMAS PENDIENTES Y RECOMENDACIONES
+## 12. PENDIENTES POR ESCALABILIDAD
 
 1. **Despliegue de Broker Privado:**  
    En entorno de laboratorio se puede utilizar `broker.emqx.io` para pruebas sin TLS o un broker Mosquitto local en puerto 8883 para TLS completo. Se recomienda montar en producción una instancia propia de Eclipse Mosquitto en un servidor VPS o Raspberry Pi con los certificados generados en `certs/`.
@@ -310,7 +284,7 @@ Se ejecutó la suite técnica integral `test_security_and_integration.py` verifi
 
 ---
 
-## 14. INSTRUCCIONES PARA EJECUTAR Y DESPLEGAR EL PROYECTO
+## 13. INSTRUCCIONES PARA EJECUTAR Y DESPLEGAR EL PROYECTO
 
 ### Paso 1: Configurar el Entorno Virtual y Dependencias
 ```powershell

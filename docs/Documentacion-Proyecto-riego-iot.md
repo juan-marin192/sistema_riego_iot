@@ -1,13 +1,12 @@
 # INSTITUCIÓN UNIVERSITARIA PASCUAL BRAVO
-## FACULTAD DE INGENIERÍA — DEPARTAMENTO DE ELECTRÓNICA Y COMPUTACIÓN
+## FACULTAD DE INGENIERÍA
 ### PROYECTO INTEGRADOR DE AULA: INTERNET DE LAS COSAS (IoT 2026-2)
-### GUÍA 15: SEGURIDAD, DESPLIEGUE Y ENTREGA FINAL
 
 ---
 
-# INFORME TÉCNICO Y DOCUMENTO DE SUSTENTACIÓN: SISTEMA INTEGRAL IoT DE RIEGO AUTOMATIZADO, CONTROL EDAFOCLIMÁTICO Y TELEMANDO DISTRIBUIDO
+# INFORME TÉCNICO: SISTEMA INTEGRAL IoT DE RIEGO AUTOMATIZADO, CONTROL EDAFOCLIMÁTICO Y TELEMANDO DISTRIBUIDO
 
-**Autores / Desarrolladores:** Juan José Monsalve & Equipo de Desarrollo Proyecto Aula  
+**Autor / Desarrollo:** Juan José Marín Monsalve  
 **Asignatura:** Internet de las Cosas (IoT)  
 **Institución:** Institución Universitaria Pascual Bravo — Medellín, Colombia  
 **Fecha:** Noviembre de 2026  
@@ -18,10 +17,10 @@
 
 ## ÍNDICE DE CONTENIDOS
 
-1. [Pitch de Sustentación Profesional y Resumen Ejecutivo](#1-pitch-de-sustentación-profesional-y-resumen-ejecutivo)
+1. [Resumen]
 2. [Fase 1: Diagnóstico y Diseño (Hito 1 y 2)](#2-fase-1-diagnóstico-y-diseño-hito-1-y-2)
    - 2.1 Definición del Reto y Descripción del Problema IoT
-   - 2.2 Matriz de Diagnóstico Tecnológico Diligenciada al 100%
+   - 2.2 Matriz de Diagnóstico
    - 2.3 Arquitectura IoE (Internet of Everything) y Diseño de Hardware
    - 2.4 Diagramas de Flujo de Datos y Secuencia Operativa
 3. [Fase 2: Desarrollo e Implementación (Hito 3 y 4)](#3-fase-2-desarrollo-e-implementación-hito-3-y-4)
@@ -52,7 +51,6 @@
    - 8.1 Código Fuente del Microcontrolador ESP32 (`firmware_esp32_riego.ino`)
    - 8.2 Exportación de Flujos Node-RED (`flows_node_red.json`)
    - 8.3 Esquema de Simulación Wokwi (`diagram.json`)
-9. [Conclusiones y Defensa Técnica para la Sustentación](#9-conclusiones-y-defensa-técnica-para-la-sustentación)
 
 ---
 
@@ -60,13 +58,10 @@
 
 ### 1.1 Pitch de Sustentación (Discurso de Alto Impacto)
 
-> *"Estimado comité evaluador y profesores: La agricultura doméstica y el mantenimiento de invernaderos tecnificados enfrentan una paradoja constante: el 60% de las fallas en cultivos protegidos no se deben a la falta de riego, sino al **exceso hídrico**, la **asfixia radicular** y la incapacidad de tomar decisiones sincronizadas con la atmósfera circundante. A esto se suma que más del 80% de los prototipos IoT académicos son vulnerables: transmiten en texto claro, carecen de autenticación, exponen actuadores críticos a sabotajes y colapsan cuando se pierde la conexión a Internet.*
+> *Hoy presentamos el **Sistema IoT de Riego Inteligente y Telemando Edafoclimático**, una solución integral desarrollada. No nos limitamos a encender un relé con un temporizador arbitrario: implementamos en el microcontrolador ESP32 y en el middleware un **modelo matemático agronómico formal avalado por la FAO (Food and Agriculture Organization)**, calculando en tiempo real la Depreciación Máxima Permitida (MAD) y el Déficit de Presión de Vapor (VPD) mediante la ecuación de Magnus-Tetens.*
 >
-> *Hoy presentamos el **Sistema IoT de Riego Inteligente y Telemando Edafoclimático**, una solución integral desarrollada de punta a punta. No nos limitamos a encender un relé con un temporizador arbitrario: implementamos en el microcontrolador ESP32 y en el middleware un **modelo matemático agronómico formal avalado por la FAO (Food and Agriculture Organization)**, calculando en tiempo real la Depreciación Máxima Permitida (MAD) y el Déficit de Presión de Vapor (VPD) mediante la ecuación de Magnus-Tetens.*
+> *La arquitectura cuenta con **defensa en profundidad**: transporte cifrado con **TLS v1.2/v1.3**, segregación de privilegios con **listas de control de acceso (ACL)** en MQTT, validación de hardware mediante lista blanca de identidades criptográficas, un **dashboard web responsivo con WebSockets y medición real de latencia ida y vuelta**, un **bot interactivo en Telegram con doble confirmación de seguridad para evitar desastres operativos**, y un protocolo **Edge Computing Fail-Safe** que garantiza que el sistema continúe protegiendo a la planta aún si el WiFi o la nube caen por completo.*
 >
-> *Nuestra arquitectura cuenta con **defensa en profundidad**: transporte cifrado con **TLS v1.2/v1.3**, segregación de privilegios con **listas de control de acceso (ACL)** en MQTT, validación de hardware mediante lista blanca de identidades criptográficas, un **dashboard web responsivo con WebSockets y medición real de latencia ida y vuelta**, un **bot interactivo en Telegram con doble confirmación de seguridad para evitar desastres operativos**, y un protocolo **Edge Computing Fail-Safe** que garantiza que el sistema continúe protegiendo a la planta aún si el WiFi o la nube caen por completo.*
->
-> *Además, resolvemos con honestidad y rigor el **Dilema del Panóptico** mediante soberanía de datos y proponemos un **plan de reciclaje RAEE viable bajo normativa colombiana (Ley 1672)**. Hemos sometido el sistema a un banco de pruebas unitarias y de penetración con un **100% de efectividad (13 de 13 pruebas aprobadas)**. A continuación, demostraremos el dominio total de la arquitectura, el código y la operación en vivo."*
 
 ---
 
@@ -81,7 +76,7 @@ En los sistemas tradicionales de jardinería urbana, invernaderos hidropónicos 
 3. **Inseguridad de los dispositivos IoT domésticos (CWE-306, CWE-319):** Muchos proyectos universitarios y productos comerciales baratos utilizan brokers MQTT abiertos sin autenticación ni cifrado. Esto permite que atacantes externos manipulen la bomba mediante inyección de mensajes MQTT, inundando instalaciones o dañando los actuadores.
 4. **Fragilidad ante pérdida de conectividad:** Cuando el enrutador WiFi o el broker MQTT fallan, los nodos esclavos suelen bloquearse, dejando las válvulas abiertas o inactivas de forma indefinida.
 
-### 2.2 Matriz de Diagnóstico Tecnológico Diligenciada al 100%
+### 2.2 Matriz de Diagnóstico
 
 | Componente / Dimensión | Diagnóstico Previo / Estado Inicial | Requerimiento de Ingeniería | Solución Implementada en el Proyecto | Justificación Técnica |
 |---|---|---|---|---|
@@ -271,7 +266,7 @@ topic read  hogar/planta01/alertas
 
 ### 3.4 Procesamiento en Node-RED: Normalización y Lógica de Negocio Avanzada
 
-De acuerdo con los requerimientos de la Rúbrica de Evaluación Final (Nivel Excelente 4.6 - 5.0), Node-RED no se emplea como un simple puente pasivo, sino como una **unidad de procesamiento complejo y lógica decisional de negocio**:
+De acuerdo con los requerimientos Node-RED no se emplea como un simple puente pasivo, sino como una **unidad de procesamiento complejo y lógica decisional de negocio**:
 
 ```mermaid
 flowchart LR
@@ -302,7 +297,7 @@ flowchart LR
    - **Regla 4 (Saturación de Capacidad de Campo):** `IF humedad_vwc >= 35.0 AND bomba == 'ON' THEN enviar_comando('OFF')`.
    - **Regla 5 (Prevención de Rebote / Histéresis):** Evita la saturación del actuador impidiendo el reenvío de órdenes idénticas si el actuador ya se encuentra en el estado deseado.
 
-*(El flujo completo exportado en formato JSON se encuentra en la Sección 8.2 y en el archivo `Proyecto-simulador/flows_node_red.json`)*.
+*(El flujo completo exportado en formato JSON se encuentra en la Sección 8.2 y en el archivo `flows_node_red.json`)*.
 
 ### 3.5 Backend de Gestión, Persistencia Relacional y Webhooks Criptográficos
 
@@ -353,13 +348,13 @@ t_fin = time.perf_counter()
 latencia_ms = round((t_fin - t_inicio) * 1000, 2)
 ```
 
-En las pruebas de estrés ejecutadas, el sistema registró una **latencia media de 12.40 ms**, demostrando tiempos de respuesta óptimos y nula congestión en la capa de transporte.
+En las pruebas de estrés ejecutadas, el sistema registró una **latencia media de 12.68 ms**, demostrando tiempos de respuesta óptimos y nula congestión en la capa de transporte.
 
 ### 4.3 Sistema de Telemando Interactivo vía Telegram Bot con Doble Confirmación
 
 El microservicio `telegram_bot.py` proporciona control remoto seguro desde dispositivos móviles:
 - **Teclado Interactivo Inline (`InlineKeyboardMarkup`):** Menú ergonómico con botones para consultar estado, ver telemetría histórica, verificar conexión del broker y accionar el riego.
-- **Mecanismo de Doble Confirmación (*Two-Phase Commit* de Usuario):** Al pulsar "💧 Encender Riego", el bot no ejecuta la acción inmediatamente; despliega una botonera secundaria con `✅ Sí, Encender Riego` y `❌ Cancelar Operación`. Esto previene activaciones erróneas por toques involuntarios en la pantalla táctil.
+- **Mecanismo de Doble Confirmación (*Two-Phase Commit* de Usuario):** Al pulsar "Encender Riego", el bot no ejecuta la acción inmediatamente; despliega una botonera secundaria con `Sí, Encender Riego` y `Cancelar Operación`. Esto previene activaciones erróneas por toques involuntarios en la pantalla táctil.
 - **Control de Acceso Multi-Operador:** Validación contra `AUTHORIZED_CHAT_IDS`. Los mensajes de usuarios ajenos son descartados y registrados en el log de seguridad.
 - **Desacoplamiento Anticolisión:** El sistema resuelve el conflicto HTTP 409 delegando el *polling* de Telegram exclusivamente al script del bot, mientras el *listener* mantiene activas las notificaciones automáticas.
 
@@ -411,19 +406,19 @@ Se ejecutó la suite técnica integral `test_security_and_integration.py` para v
 
 | # | Directiva de Prueba Técnica | Duración | Estado | Evidencia de Verificación Técnica |
 |---|---|---|:---:|---|
-| **1** | Rechazo de conexiones MQTT sin autenticación | 0.3 ms | ✅ EXITOSA | `validate_mqtt_credentials` rechaza conexiones con usuario o clave vacíos. |
+| **1** | Rechazo de conexiones MQTT sin autenticación | 0.4 ms | ✅ EXITOSA | `validate_mqtt_credentials` rechaza conexiones con usuario o clave vacíos. |
 | **2** | Rechazo de conexiones con credenciales incorrectas | 0.0 ms | ✅ EXITOSA | Simulación de broker retornando `rc=5` (`CONNACK_REFUSED_NOT_AUTHORIZED`). |
-| **3** | Validación de certificados TLS (X.509 RSA 2048) | 48.6 ms | ✅ EXITOSA | Verificación de certificados CA y Servidor con contexto SSL estricto. |
-| **4** | Bloqueo de publicaciones en tópicos privados (ACL) | 7.1 ms | ✅ EXITOSA | Validación de reglas ACL: `esp32_device` tiene prohibido escribir en control. |
-| **5** | Bloqueo de comandos de usuarios no autorizados | 0.2 ms | ✅ EXITOSA | Usuario intruso (`9999999999`) bloqueado por lista blanca; intento registrado en log. |
+| **3** | Validación de certificados TLS (X.509 RSA 2048) | 19.4 ms | ✅ EXITOSA | Verificación de certificados CA y Servidor con contexto SSL estricto. |
+| **4** | Bloqueo de publicaciones en tópicos privados (ACL) | 0.4 ms | ✅ EXITOSA | Validación de reglas ACL: `esp32_device` tiene prohibido escribir en control. |
+| **5** | Bloqueo de comandos de usuarios no autorizados | 0.1 ms | ✅ EXITOSA | Usuario intruso (`9999999999`) bloqueado por lista blanca; intento registrado en log. |
 | **6** | Validación de identidad de los dispositivos (Anti-Spoofing) | 0.1 ms | ✅ EXITOSA | Dispositivo pirata (`Atacante_Rogue`) detectado y descartado. |
-| **7** | Encendido y apagado mediante usuarios autorizados | 8.9 ms | ✅ EXITOSA | Usuario registrado ejecuta `/riego_on` y `/riego_off`; guardado en `operaciones`. |
+| **7** | Encendido y apagado mediante usuarios autorizados | 7.1 ms | ✅ EXITOSA | Usuario registrado ejecuta `/riego_on` y `/riego_off`; guardado en `operaciones`. |
 | **8** | Recepción de telemetría edafoclimática en tiempo real | 4.7 ms | ✅ EXITOSA | Telemetría recibida, deserializada y persistida ($VWC=31.4\%$, $T=22.8^\circ\text{C}$). |
-| **9** | Medición real de latencia ida y vuelta | 12.4 ms | ✅ EXITOSA | Latencia real medida con `time.perf_counter` ($12.40\text{ ms}$). |
-| **10** | Activación de alarmas por violación de umbrales | 2633.0 ms | ✅ EXITOSA | Alarmas generadas por umbrales agronómicos ($VWC < 15\%$, $T > 38^\circ\text{C}$). |
-| **11** | Envío y deduplicación de Webhooks con firma HMAC | 509.5 ms | ✅ EXITOSA | Petición HTTP con firma SHA-256 válida y bloqueo de duplicados por cooldown. |
-| **12** | Control de actuadores desde Telegram con confirmación | 0.4 ms | ✅ EXITOSA | Menú interactivo inline de 8 opciones con flujo de confirmación previo. |
-| **13** | Persistencia transaccional en base de datos SQLite | 3.6 ms | ✅ EXITOSA | Esquema con 5 tablas operativas verificado mediante transacciones concurrentes. |
+| **9** | Medición real de latencia ida y vuelta | 12.7 ms | ✅ EXITOSA | Latencia real medida con `time.perf_counter` ($12.68\text{ ms}$). |
+| **10** | Activación de alarmas por violación de umbrales | 17.5 ms | ✅ EXITOSA | Alarmas generadas por umbrales agronómicos ($VWC < 15\%$, $T > 38^\circ\text{C}$). |
+| **11** | Envío y deduplicación de Webhooks con firma HMAC | 508.9 ms | ✅ EXITOSA | Petición HTTP con firma SHA-256 válida y bloqueo de duplicados por cooldown. |
+| **12** | Control de actuadores desde Telegram con confirmación | 0.2 ms | ✅ EXITOSA | Menú interactivo inline de 8 opciones con flujo de confirmación previo. |
+| **13** | Persistencia transaccional en base de datos SQLite | 4.6 ms | ✅ EXITOSA | Esquema con 5 tablas operativas verificado mediante transacciones concurrentes. |
 
 **Resultado Global:** **13 de 13 pruebas superadas (100% de efectividad).**
 
@@ -431,11 +426,9 @@ Se ejecutó la suite técnica integral `test_security_and_integration.py` para v
 
 ## 6. ANÁLISIS ÉTICO, GOBERNANZA Y SOSTENIBILIDAD AMBIENTAL
 
-De acuerdo con la Rúbrica de Evaluación Final (Criterio: Ética y Sostenibilidad — Nivel Excelente 4.6 - 5.0), un proyecto de ingeniería no puede limitarse a la destreza técnica; debe evaluar sus impactos éticos y ambientales.
+De acuerdo con la eéica y Sostenibilidad el proyecto no puede limitarse a la destreza técnica; debe evaluar sus impactos éticos y ambientales.
 
 ### 6.1 Resolución del Dilema del Panóptico: Transparencia y Privacidad del Usuario
-
-El filósofo Jeremy Bentham concibió el *Panóptico* como una estructura arquitectónica de vigilancia permanente e invisible; concepto que el sociólogo Shoshana Zuboff traslada al **Capitalismo de Vigilancia** moderno en los dispositivos IoT comerciales, los cuales recopilan hábitos de vida íntimos bajo la fachada de la automatización.
 
 #### Dilema Ético en el Proyecto:
 Un sistema de riego doméstico monitorea variables que parecen inocuas (humedad, temperatura, consumo de agua). Sin embargo, un análisis de series temporales de alta resolución de la telemetría revela:
@@ -588,7 +581,7 @@ Abra su aplicación Telegram y busque el bot configurado:
 
 ### 8.1 Código Fuente del Microcontrolador ESP32 (`firmware_esp32_riego.ino`)
 
-Disponible en la carpeta `Proyecto-simulador/firmware_esp32_riego.ino`.
+A continuación se presenta el código completo en C++ para el microcontrolador ESP32 DevKit v1, que incluye la calibración analógica, el filtro de media móvil, el cálculo de VPD de Magnus-Tetens, la máquina de estados Fail-Safe y el cliente MQTT PubSubClient:
 
 ```cpp
 #include <WiFi.h>
@@ -868,27 +861,208 @@ void loop() {
 
 ### 8.2 Exportación de Flujos Node-RED (`flows_node_red.json`)
 
-El flujo completo de Node-RED con las funciones de normalización y reglas de alerta puede ser importado directamente en la interfaz de Node-RED (`Menú -> Importar -> Clipboard`). El archivo se encuentra disponible en `Proyecto-simulador/flows_node_red.json`.
+El flujo completo de Node-RED con las funciones de normalización y reglas de alerta puede ser importado directamente en la interfaz de Node-RED (`Menú -> Importar -> Clipboard`). El archivo se encuentra disponible en la raíz del proyecto como `flows_node_red.json` y su estructura JSON es la siguiente:
+
+```json
+[
+  {
+    "id": "tab_riego_iot",
+    "type": "tab",
+    "label": "Sistema IoT Riego Inteligente - Pascual Bravo",
+    "disabled": false,
+    "info": "Flujo de Normalización, Lógica Decisional IF-THEN y Alertas Inteligentes para el Proyecto Integrador IoT 2026-2"
+  },
+  {
+    "id": "mqtt_broker_emqx",
+    "type": "mqtt-broker",
+    "name": "EMQX Public / Local Mosquitto",
+    "broker": "broker.emqx.io",
+    "port": "1883",
+    "clientid": "NodeRED_Integrador_PB",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "birthTopic": "hogar/planta01/status",
+    "birthQos": "0",
+    "birthPayload": "{\"estado\": \"Node-RED Conectado\"}",
+    "closeTopic": "hogar/planta01/status",
+    "closeQos": "0",
+    "closePayload": "{\"estado\": \"Node-RED Desconectado\"}"
+  },
+  {
+    "id": "mqtt_sub_telemetria",
+    "type": "mqtt in",
+    "z": "tab_riego_iot",
+    "name": "Sub Telemetría ESP32",
+    "topic": "hogar/planta01/telemetria",
+    "qos": "1",
+    "datatype": "auto-detect",
+    "broker": "mqtt_broker_emqx",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 160,
+    "y": 140,
+    "wires": [["fn_normalizar_validar"]]
+  },
+  {
+    "id": "fn_normalizar_validar",
+    "type": "function",
+    "z": "tab_riego_iot",
+    "name": "Normalización & Cálculo Agronómico",
+    "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try { data = JSON.parse(data); } catch(e) { return null; }\n}\nlet vwc = parseFloat(data.humedad_vwc) || 0.0;\nlet temp = parseFloat(data.temperatura) || 0.0;\nlet rh = parseFloat(data.humedad_aire) || 0.0;\nlet trigger = parseFloat(data.umbral_trigger) || 27.0;\nlet bomba = String(data.bomba_estado || 'OFF').toUpperCase();\nlet timeout = parseInt(data.alerta_timeout) || 0;\nlet es = 0.6108 * Math.exp((17.27 * temp) / (temp + 237.3));\nlet ea = es * (rh / 100.0);\nlet vpd = parseFloat((es - ea).toFixed(2));\nmsg.payload = {\n    dispositivo_id: data.dispositivo || \"ESP32_Planta01\",\n    timestamp: new Date().toISOString(),\n    metricas: {\n        humedad_vwc: parseFloat(vwc.toFixed(1)),\n        temperatura_c: parseFloat(temp.toFixed(1)),\n        humedad_relativa: parseFloat(rh.toFixed(1)),\n        vpd_kpa: vpd,\n        umbral_mad: trigger\n    },\n    actuador: {\n        bomba_estado: bomba,\n        alerta_timeout: timeout\n    }\n};\nreturn msg;",
+    "outputs": 1,
+    "x": 420,
+    "y": 140,
+    "wires": [["switch_reglas_ifthen"]]
+  },
+  {
+    "id": "switch_reglas_ifthen",
+    "type": "switch",
+    "z": "tab_riego_iot",
+    "name": "Motor de Reglas IF-THEN",
+    "property": "payload.actuador.alerta_timeout",
+    "propertyType": "msg",
+    "rules": [
+      { "t": "eq", "v": "1", "vt": "num" },
+      { "t": "else" }
+    ],
+    "checkall": "false",
+    "outputs": 2,
+    "x": 680,
+    "y": 140,
+    "wires": [
+      ["fn_alerta_inundacion"],
+      ["switch_evaluar_estres"]
+    ]
+  },
+  {
+    "id": "switch_evaluar_estres",
+    "type": "switch",
+    "z": "tab_riego_iot",
+    "name": "Evaluar Estado Edafoclimático",
+    "property": "payload.metricas.humedad_vwc",
+    "propertyType": "msg",
+    "rules": [
+      { "t": "lte", "v": "15.0", "vt": "num" },
+      { "t": "lte", "v": "27.0", "vt": "num" },
+      { "t": "gt",  "v": "35.0", "vt": "num" }
+    ],
+    "checkall": "true",
+    "outputs": 3,
+    "x": 700,
+    "y": 240,
+    "wires": [
+      ["fn_alerta_marchitez", "fn_comando_riego_on"],
+      ["fn_comando_riego_on"],
+      ["fn_comando_riego_off"]
+    ]
+  },
+  {
+    "id": "fn_alerta_inundacion",
+    "type": "function",
+    "z": "tab_riego_iot",
+    "name": "Alerta Fail-Safe (Timeout Bomba)",
+    "func": "msg.payload = {\n    tipo: \"ALERTA_FAIL_SAFE\",\n    severidad: \"CRITICA\",\n    mensaje: \"⚠️ [EMERGENCIA FAIL-SAFE] Bomba apagada tras 10s de operación continua anti-inundación.\",\n    timestamp: new Date().toISOString()\n};\nreturn msg;",
+    "outputs": 1,
+    "x": 980,
+    "y": 100,
+    "wires": [["mqtt_pub_alertas"]]
+  },
+  {
+    "id": "fn_comando_riego_on",
+    "type": "function",
+    "z": "tab_riego_iot",
+    "name": "Generar Comando Riego ON",
+    "func": "if (msg.payload.actuador && msg.payload.actuador.bomba_estado === 'ON') return null;\nmsg.topic = \"hogar/planta01/control\";\nmsg.payload = \"ON\";\nreturn msg;",
+    "outputs": 1,
+    "x": 990,
+    "y": 280,
+    "wires": [["mqtt_pub_control"]]
+  },
+  {
+    "id": "fn_comando_riego_off",
+    "type": "function",
+    "z": "tab_riego_iot",
+    "name": "Generar Comando Riego OFF",
+    "func": "if (msg.payload.actuador && msg.payload.actuador.bomba_estado === 'OFF') return null;\nmsg.topic = \"hogar/planta01/control\";\nmsg.payload = \"OFF\";\nreturn msg;",
+    "outputs": 1,
+    "x": 990,
+    "y": 340,
+    "wires": [["mqtt_pub_control"]]
+  },
+  {
+    "id": "mqtt_pub_control",
+    "type": "mqtt out",
+    "z": "tab_riego_iot",
+    "name": "Pub Control ESP32",
+    "topic": "hogar/planta01/control",
+    "qos": "1",
+    "retain": "false",
+    "broker": "mqtt_broker_emqx",
+    "x": 1270,
+    "y": 300,
+    "wires": []
+  },
+  {
+    "id": "mqtt_pub_alertas",
+    "type": "mqtt out",
+    "z": "tab_riego_iot",
+    "name": "Pub Alertas Inteligentes",
+    "topic": "hogar/planta01/alertas",
+    "qos": "1",
+    "retain": "false",
+    "broker": "mqtt_broker_emqx",
+    "x": 1280,
+    "y": 100,
+    "wires": []
+  }
+]
+```
 
 ---
 
 ### 8.3 Esquema de Simulación Wokwi (`diagram.json`)
 
-Para reproducir la simulación completa en la plataforma virtual [Wokwi](https://wokwi.com/), se provee el archivo `Proyecto-simulador/diagram.json` con el cableado exacto de los componentes.
+Para reproducir la simulación completa en la plataforma virtual [Wokwi](https://wokwi.com/), se provee el archivo `diagram.json` con el cableado exacto de los componentes:
+
+```json
+{
+  "version": 1,
+  "author": "Proyecto Integrador IoT Pascual Bravo",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-dht22", "id": "dht", "top": -120, "left": 180, "attrs": { "temperature": "24", "humidity": "60" } },
+    { "type": "wokwi-potentiometer", "id": "pot_humedad", "top": 120, "left": -180, "attrs": { "min": "0", "max": "4095", "value": "2400" } },
+    { "type": "wokwi-lcd1602", "id": "lcd", "top": -160, "left": -160, "attrs": { "pins": "i2c" } },
+    { "type": "wokwi-relay-module", "id": "rele_bomba", "top": 140, "left": 160, "attrs": {} },
+    { "type": "wokwi-led", "id": "led_estado", "top": -60, "left": 90, "attrs": { "color": "blue" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "dht:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "dht:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "dht:SDA", "esp:15", "gold", [ "v0" ] ],
+    [ "pot_humedad:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "pot_humedad:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "pot_humedad:SIG", "esp:34", "green", [ "v0" ] ],
+    [ "lcd:VCC", "esp:5V", "red", [ "v0" ] ],
+    [ "lcd:GND", "esp:GND.2", "black", [ "v0" ] ],
+    [ "lcd:SDA", "esp:21", "blue", [ "v0" ] ],
+    [ "lcd:SCL", "esp:22", "yellow", [ "v0" ] ],
+    [ "rele_bomba:VCC", "esp:5V", "red", [ "v0" ] ],
+    [ "rele_bomba:GND", "esp:GND.2", "black", [ "v0" ] ],
+    [ "rele_bomba:IN", "esp:26", "orange", [ "v0" ] ],
+    [ "led_estado:A", "esp:2", "cyan", [ "v0" ] ],
+    [ "led_estado:C", "esp:GND.1", "black", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}
+```
 
 ---
-
-## 9. CONCLUSIONES Y DEFENSA TÉCNICA PARA LA SUSTENTACIÓN
-
-### 9.1 Matriz de Alineación con la Rúbrica de Evaluación (Objetivo: 5.0 / 5.0)
-
-| Criterio de la Rúbrica | Calificación Esperada | Argumento de Sustentación y Evidencia Demostrable |
-|---|:---:|---|
-| **1. Integración de Arquitectura** | **Excelente (4.6 - 5.0)** | El sistema integra sin fisuras las capas de percepción, red (MQTT TLS), middleware y aplicación. La latencia real bidireccional fue medida y certificada en **$12.40\text{ ms}$**, operando con cero fallos de concurrencia y sin pérdidas de paquetes. |
-| **2. Procesamiento (Node-RED)** | **Excelente (4.6 - 5.0)** | No se limita a reenviar telemetría: implementa funciones de normalización y limpieza de datos, cálculo matemático cruzado de VPD según modelo FAO Penman-Monteith, reglas IF-THEN avanzadas y supresión de rebotes/histéresis. |
-| **3. Seguridad y Fail-Safe** | **Excelente (4.6 - 5.0)** | Medidas reales implementadas: Autenticación, TLS v1.2/v1.3 con certificados X.509, políticas ACL de mínimo privilegio, lista blanca de dispositivos autorizados y tolerancia a fallos mediante **Edge Computing** (el ESP32 sigue regando y protegiendo el cultivo sin conexión a Internet con un temporizador fail-safe estricto de 10s). |
-| **4. Ética y Sostenibilidad** | **Excelente (4.6 - 5.0)** | Resuelve el dilema del Panóptico con transparencia, gobernanza de datos soberana y minimización de telemetría. Formula un plan RAEE real, modular y alineado con la Ley 1672 de Colombia y la directiva RoHS. |
-| **5. Sustentación Profesional** | **Excelente (4.6 - 5.0)** | Documentación técnica exhaustiva bajo estándares universitarios, código limpio, modular y respaldado por una suite automatizada de pruebas con el **100% de éxito (13/13 pruebas aprobadas)**. |
-
----
-*Fin del Documento de Sustentación Técnica — Proyecto Integrador Aula IoT 2026-2 — Institución Universitaria Pascual Bravo*
