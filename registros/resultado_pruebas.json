@@ -3,91 +3,91 @@
     "prueba": "1. Rechazo de conexiones MQTT sin autenticación",
     "estado": "EXITOSA",
     "detalles": "Validación de credenciales vacías: Usuario MQTT vacío o ausente (conexión anónima no permitida)",
-    "duracion_ms": 0.47,
-    "timestamp": "2026-11-19 12:04:17"
+    "duracion_ms": 0.31,
+    "timestamp": "2026-11-19 14:27:18"
   },
   {
     "prueba": "2. Rechazo de conexiones con credenciales incorrectas",
     "estado": "EXITOSA",
     "detalles": "El broker rechaza credenciales con código rc=5 (CONNACK_REFUSED_NOT_AUTHORIZED)",
-    "duracion_ms": 0.01,
-    "timestamp": "2026-11-19 12:04:17"
+    "duracion_ms": 0.0,
+    "timestamp": "2026-11-19 14:27:18"
   },
   {
     "prueba": "3. Validación de certificados TLS",
     "estado": "EXITOSA",
     "detalles": "Certificados X.509 verificados: CA (CN=IoT-Riego-Root-CA,O=IoT Riego Automatico CA,ST=Madrid,C=ES), Server (CN=localhost,O=IoT Riego Broker,ST=Madrid,C=ES)",
-    "duracion_ms": 76.99,
-    "timestamp": "2026-11-19 12:04:17"
+    "duracion_ms": 48.59,
+    "timestamp": "2026-11-19 14:27:19"
   },
   {
     "prueba": "4. Bloqueo de publicaciones en tópicos privados (ACL)",
     "estado": "EXITOSA",
     "detalles": "ACL Mosquitto restringe a esp32_device: solo write en telemetria, solo read en control",
-    "duracion_ms": 0.99,
-    "timestamp": "2026-11-19 12:04:17"
+    "duracion_ms": 7.08,
+    "timestamp": "2026-11-19 14:27:19"
   },
   {
     "prueba": "5. Bloqueo de comandos provenientes de usuarios no autorizados",
     "estado": "EXITOSA",
     "detalles": "Usuario '9999999999' bloqueado exitosamente por lista blanca de seguridad",
-    "duracion_ms": 0.11,
-    "timestamp": "2026-11-19 12:04:17"
+    "duracion_ms": 0.15,
+    "timestamp": "2026-11-19 14:27:19"
   },
   {
     "prueba": "6. Validación de identidad de los dispositivos",
     "estado": "EXITOSA",
     "detalles": "Dispositivo suplantador 'Atacante_Externo_Rogue' bloqueado: Dispositivo no registrado o no autorizado: Atacante_Externo_Rogue",
-    "duracion_ms": 0.09,
-    "timestamp": "2026-11-19 12:04:17"
+    "duracion_ms": 0.13,
+    "timestamp": "2026-11-19 14:27:19"
   },
   {
     "prueba": "7. Encendido y apagado mediante usuarios autorizados",
     "estado": "EXITOSA",
     "detalles": "Usuario autorizado '9013582355' ejecutó /riego_on y /riego_off con éxito",
-    "duracion_ms": 13.05,
-    "timestamp": "2026-11-19 12:04:17"
+    "duracion_ms": 8.9,
+    "timestamp": "2026-11-19 14:27:19"
   },
   {
     "prueba": "8. Recepción de telemetría en tiempo real",
     "estado": "EXITOSA",
     "detalles": "Telemetría recibida, deserializada y persistida correctamente (VWC=31.4%, Temp=22.8°C)",
-    "duracion_ms": 8.64,
-    "timestamp": "2026-11-19 12:04:17"
+    "duracion_ms": 4.67,
+    "timestamp": "2026-11-19 14:27:19"
   },
   {
     "prueba": "9. Medición real de latencia",
     "estado": "EXITOSA",
-    "detalles": "Latencia real medida ida y vuelta: 12.35 ms (solicitud y confirmación con timestamp de alta precisión)",
-    "duracion_ms": 12.36,
-    "timestamp": "2026-11-19 12:04:17"
+    "detalles": "Latencia real medida ida y vuelta: 12.40 ms (solicitud y confirmación con timestamp de alta precisión)",
+    "duracion_ms": 12.4,
+    "timestamp": "2026-11-19 14:27:19"
   },
   {
     "prueba": "10. Activación de alarmas por umbrales",
     "estado": "EXITOSA",
     "detalles": "Alarmas activadas y registradas en BD: ['VPD_CRITICO', 'TEMPERATURA_ALTA', 'HUMEDAD_CRITICA_BAJA']",
-    "duracion_ms": 109.5,
-    "timestamp": "2026-11-19 12:04:17"
+    "duracion_ms": 2633.04,
+    "timestamp": "2026-11-19 14:27:21"
   },
   {
     "prueba": "11. Envío y recepción de notificaciones / Webhooks",
     "estado": "EXITOSA",
     "detalles": "Webhook procesado con HMAC-SHA256, deduplicación de spam verificada (suprimido evento redundante)",
-    "duracion_ms": 615.38,
-    "timestamp": "2026-11-19 12:04:18"
+    "duracion_ms": 509.54,
+    "timestamp": "2026-11-19 14:27:22"
   },
   {
     "prueba": "12. Control de actuadores desde Telegram",
     "estado": "EXITOSA",
     "detalles": "Menú interactivo inline con 8 opciones y confirmación de seguridad para acciones críticas verificado",
-    "duracion_ms": 0.18,
-    "timestamp": "2026-11-19 12:04:18"
+    "duracion_ms": 0.41,
+    "timestamp": "2026-11-19 14:27:22"
   },
   {
     "prueba": "13. Persistencia de información en la base de datos",
     "estado": "EXITOSA",
-    "detalles": "Integridad de BD confirmada con 5 tablas activas: {'telemetria': 54, 'operaciones': 14, 'alarmas': 21, 'webhooks_config': 8, 'webhook_logs': 165}",
-    "duracion_ms": 2.13,
-    "timestamp": "2026-11-19 12:04:18"
+    "detalles": "Integridad de BD confirmada con 5 tablas activas: {'telemetria': 55, 'operaciones': 16, 'alarmas': 24, 'webhooks_config': 9, 'webhook_logs': 203}",
+    "duracion_ms": 3.59,
+    "timestamp": "2026-11-19 14:27:22"
   }
 ]
